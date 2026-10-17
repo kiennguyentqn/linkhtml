@@ -480,7 +480,11 @@
 
       <!-- Tabs Container -->
       <div class="tabs-container">
-        <button id="tab-ruong" class="tab-btn" onclick="switchTab('ruong_lon')">
+        <button
+          id="tab-ruong"
+          class="tab-btn active"
+          onclick="switchTab('ruong_lon')"
+        >
           Rương lớn
         </button>
         <button
@@ -492,7 +496,7 @@
         </button>
         <button
           id="tab-ruong-bug"
-          class="tab-btn active"
+          class="tab-btn"
           onclick="switchTab('ruong_treo')"
         >
           Rương treo
@@ -815,6 +819,168 @@
 
       unauthDeviceId.textContent = deviceId;
 
+      // ==================== ĐẾM NGƯỢC THỜI GIAN CỦA TỪNG LINK ====================
+      // item.time dạng "01:00s - 10:32:20": thời lượng 01:00 (mm:ss) - giờ bắt đầu 10:32:20.
+      // Hết hạn = giờ bắt đầu + thời lượng; còn lại = hết hạn - giờ hiện tại.
+      // Giờ chuẩn lấy từ internet (không dùng đồng hồ máy). Sau mỗi lần đồng bộ, thời gian
+      // chạy tiếp bằng performance.now() (đồng hồ đơn điệu, đổi giờ máy cũng không ảnh hưởng).
+      let timeSync = null; // { server: ms (UTC), perf: performance.now() lúc đồng bộ }
+      // Giờ trong trường time của link là giờ Việt Nam (UTC+7)
+      const SERVER_TZ_OFFSET_H = 7;
+
+      function nowMs() {
+        return timeSync
+          ? timeSync.server + (performance.now() - timeSync.perf)
+          : Date.now(); // tạm dùng giờ máy cho tới khi đồng bộ xong
+      }
+
+      const TIME_SOURCES = [
+        {
+          url: "https://worldtimeapi.org/api/timezone/Etc/UTC",
+          parse: async (r) => {
+            const j = await r.json();
+            const t = new Date(
+              String(j.datetime).replace(/(\.\d{3})\d+/, "$1"),
+            ).getTime();
+            return isNaN(t) ? j.unixtime * 1000 : t;
+          },
+        },
+        {
+          url: "https://timeapi.io/api/Time/current/zone?timeZone=UTC",
+          parse: async (r) => {
+            const j = await r.json();
+            return new Date(
+              String(j.dateTime).replace(/(\.\d{3})\d+/, "$1") + "Z",
+            ).getTime();
+          },
+        },
+        {
+          url: "https://www.cloudflare.com/cdn-cgi/trace",
+          parse: async (r) => {
+            const m = (await r.text()).match(/ts=([\d.]+)/);
+            return m ? parseFloat(m[1]) * 1000 : NaN;
+          },
+        },
+      ];
+
+      async function fetchInternetTime() {
+        for (const src of TIME_SOURCES) {
+          const ctl = new AbortController();
+          const timer = setTimeout(() => ctl.abort(), 4000);
+          try {
+            const t0 = performance.now();
+            const res = await fetch(src.url, {
+              cache: "no-store",
+              signal: ctl.signal,
+            });
+            const t1 = performance.now();
+            const serverMs = await src.parse(res);
+            clearTimeout(timer);
+            if (!res.ok || !isFinite(serverMs)) continue;
+            // Bù một nửa độ trễ mạng
+            timeSync = { server: serverMs + (t1 - t0) / 2, perf: t1 };
+            return true;
+          } catch (e) {
+            clearTimeout(timer);
+          }
+        }
+        console.warn("Không lấy được giờ từ internet, tạm dùng giờ máy.");
+        return false;
+      }
+
+      async function syncInternetTime() {
+        const first = !timeSync;
+        const ok = await fetchInternetTime();
+        // Lần đồng bộ đầu tiên: vẽ lại để các đồng hồ dùng giờ chuẩn
+        if (ok && first && typeof renderLinks === "function")
+          renderLinks(allLinks);
+      }
+
+      // Cache giờ hết hạn theo từng link: tính 1 lần duy nhất, các lần render sau dùng lại
+      // (không đếm lại từ đầu). Lưu localStorage để tải lại trang cũng không bị reset.
+      const expiryCache = (() => {
+        try {
+          const c = JSON.parse(localStorage.getItem("link_expiry_v2") || "{}");
+          const limit = Date.now() - 3600000; // bỏ các link đã hết hạn quá 1 giờ
+          Object.keys(c).forEach((k) => {
+            if (c[k] < limit) delete c[k];
+          });
+          return c;
+        } catch (e) {
+          return {};
+        }
+      })();
+
+      function getLinkExpiry(item, key) {
+        const ck = key + "|" + ((item && item.time) || "");
+        if (expiryCache[ck] !== undefined) return expiryCache[ck];
+        const exp = computeLinkExpiry(item);
+        if (exp !== null && timeSync) {
+          expiryCache[ck] = exp;
+          try {
+            localStorage.setItem("link_expiry_v2", JSON.stringify(expiryCache));
+          } catch (e) {}
+        }
+        return exp;
+      }
+
+      function computeLinkExpiry(item) {
+        const m = String((item && item.time) || "").match(
+          /(\d+):(\d{2})\s*s?\s*-\s*(\d{1,2}):(\d{2}):(\d{2})/,
+        );
+        if (!m) return null;
+        const durSec = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+        const tz = SERVER_TZ_OFFSET_H * 3600000;
+        const now = nowMs();
+        const vn = new Date(now + tz); // đọc các trường UTC = giờ VN
+        let startMs =
+          Date.UTC(
+            vn.getUTCFullYear(),
+            vn.getUTCMonth(),
+            vn.getUTCDate(),
+            parseInt(m[3], 10),
+            parseInt(m[4], 10),
+            parseInt(m[5], 10),
+          ) - tz;
+        // Chỉ coi là hôm qua khi giờ bắt đầu lớn hơn hiện tại rất nhiều (qua nửa đêm)
+        if (startMs > now + 30 * 60000) startMs -= 86400000;
+        // Không bao giờ vượt quá thời lượng gốc
+        return Math.min(startMs + durSec * 1000, now + durSec * 1000);
+      }
+
+      // Link đã hết hạn? (chỉ xét khi đã có giờ internet để không xóa nhầm do lệch giờ máy)
+      function isLinkExpired(item, key) {
+        if (!timeSync) return false;
+        const exp = getLinkExpiry(item, key);
+        return exp !== null && exp <= nowMs();
+      }
+
+      function updateCountdowns() {
+        const pad = (n) => String(n).padStart(2, "0");
+        let expiredAny = false;
+        document.querySelectorAll(".countdown").forEach((el) => {
+          const diff = Number(el.dataset.exp) - nowMs();
+          if (diff <= 0) {
+            if (timeSync)
+              expiredAny = true; // sẽ được loại khỏi danh sách
+            else el.textContent = "00:00";
+            return;
+          }
+          const total = Math.floor(diff / 1000);
+          const h = Math.floor(total / 3600);
+          const m = Math.floor((total % 3600) / 60);
+          const sec = total % 60;
+          el.textContent =
+            h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
+          el.style.color = total < 60 ? "#ef4444" : "";
+        });
+        // Xóa các link hết hạn và bù thêm link cũ hơn cho đủ danh sách
+        if (expiredAny) renderLinks(allLinks);
+      }
+      setInterval(updateCountdowns, 1000);
+      syncInternetTime();
+      setInterval(syncInternetTime, 5 * 60000); // đồng bộ lại mỗi 5 phút
+
       // ==================== CÀI ĐẶT: DEVICE ID & LỌC RATIO ====================
       let ratioFilter = localStorage.getItem("ratio_filter") || "";
 
@@ -889,7 +1055,7 @@
       let allLinks = {};
       let groupCounts = {};
       let currentChannels = {};
-      let activeTab = "ruong_treo"; // Mặc định là Rương treo
+      let activeTab = "ruong_lon"; // Mặc định là Rương lớn
 
       const TAB_KEY_TO_ELEMENT_ID = {
         ruong_lon: "tab-ruong",
@@ -1175,7 +1341,7 @@
               // Bắt đầu đếm ngược thời gian
               startCountdown(authData.expires_at);
 
-              await fetchLinks();
+              await fetchLinks(manual);
               if (manual) showToast("Đã làm mới danh sách!");
             } else {
               unauthorizedView.style.display = "block";
@@ -1194,9 +1360,9 @@
 
       // Fetch links list
       // Fetch links list with automatic icon spin feedback
-      async function fetchLinks() {
+      async function fetchLinks(manual = false) {
         const refreshIcon = document.querySelector(".refresh-icon");
-        if (refreshIcon) {
+        if (manual && refreshIcon) {
           refreshIcon.classList.add("spinning");
           setTimeout(() => {
             refreshIcon.classList.remove("spinning");
@@ -1356,6 +1522,7 @@
           .filter(
             (key) => activeTab !== "ruong_lon" || passesRatioFilter(links[key]),
           )
+          .filter((key) => !isLinkExpired(links[key], key))
           .sort((a, b) => {
             const parseDate = (str) => {
               if (!str) return 0;
@@ -1411,18 +1578,18 @@
         // Chỉ hiển thị tối đa 20 link mới nhất trên giao diện UI để tối ưu hiệu năng
         const visibleKeys = keys.slice(0, 20);
 
-        linksList.innerHTML = visibleKeys
-          .map((key, idx) => {
-            const item = links[key];
-            const timeParts = item.created_at.split(" ");
-            const hours = timeParts[0] || "";
-            const date = timeParts[1] || "";
-            const isInteracted = interacted.includes(key);
+        const cardHtmls = visibleKeys.map((key, idx) => {
+          const item = links[key];
+          const timeParts = item.created_at.split(" ");
+          const hours = timeParts[0] || "";
+          const date = timeParts[1] || "";
+          const expMs = getLinkExpiry(item, key);
+          const isInteracted = interacted.includes(key);
 
-            return `
+          return `
           <div class="link-card ${isInteracted ? "interacted" : ""}" style="animation-delay: ${idx * 0.05}s" data-key="${key}">
             <div class="link-time">
-              <span class="time-hours">${hours}</span>
+              <span class="time-hours${expMs ? " countdown" : ""}"${expMs ? ` data-exp="${expMs}"` : ""}>${expMs ? "--:--" : hours}</span>
               <span class="time-date">${date}</span>
             </div>
             <div class="link-main-content">
@@ -1453,8 +1620,60 @@
             </div>
           </div>
         `;
-          })
-          .join("");
+        });
+        // Cập nhật từng thẻ (giữ nguyên thẻ cũ) -> không chớp, không phát lại hiệu ứng
+        const sigOf = (key) => {
+          const it = links[key];
+          return JSON.stringify([
+            it.tt_id,
+            it.box_bag,
+            it.ratio,
+            it.live,
+            it.time,
+            it.created_at,
+            getLinkExpiry(it, key),
+          ]);
+        };
+        const existing = {};
+        Array.from(linksList.children).forEach((el) => {
+          if (el.dataset && el.dataset.key) existing[el.dataset.key] = el;
+          else el.remove(); // thông báo "đang tải"/"chưa có link"
+        });
+        const hadCards = Object.keys(existing).length > 0;
+        const wanted = new Set(visibleKeys);
+        Object.keys(existing).forEach((k) => {
+          if (!wanted.has(k)) {
+            existing[k].remove();
+            delete existing[k];
+          }
+        });
+
+        const tpl = document.createElement("template");
+        let prev = null;
+        visibleKeys.forEach((key, idx) => {
+          const sig = sigOf(key);
+          let el = existing[key];
+          if (!el || el.dataset.sig !== sig) {
+            tpl.innerHTML = cardHtmls[idx].trim();
+            const fresh = tpl.content.firstElementChild;
+            fresh.dataset.sig = sig;
+            if (hadCards) {
+              if (el)
+                fresh.style.animation = "none"; // thẻ cũ cập nhật dữ liệu: không hiệu ứng
+              else fresh.style.animationDelay = "0s"; // link mới xuất hiện: chỉ thẻ đó có hiệu ứng
+            }
+            if (el) el.remove();
+            el = fresh;
+          }
+          const expectedNext = prev
+            ? prev.nextElementSibling
+            : linksList.firstElementChild;
+          if (el !== expectedNext) linksList.insertBefore(el, expectedNext);
+          prev = el;
+        });
+
+        if (searchInput.value.trim()) filterLinks();
+        updateCountdowns();
       }
 
       // Search filter
@@ -1576,44 +1795,6 @@
       }
 
       // ==================== POPUP THÔNG BÁO NỔI ====================
-      async function initAnnouncementPopup() {
-        try {
-          const res = await fetch("https://vohoainam.net/api/announcement");
-          if (!res.ok) return;
-          const data = await res.json();
-          if (data && data.enabled && data.content && data.content.trim()) {
-            const backdrop = document.getElementById(
-              "announcementPopupBackdrop",
-            );
-            const titleEl = document.getElementById("announcementModalTitle");
-            const contentEl = document.getElementById(
-              "announcementModalContent",
-            );
-            const btnEl = document.getElementById("announcementModalBtn");
-
-            if (backdrop && contentEl) {
-              if (titleEl)
-                titleEl.textContent = data.title || "Thông Báo Hệ Thống";
-
-              const escapeDiv = document.createElement("div");
-              escapeDiv.textContent = data.content;
-              const escaped = escapeDiv.innerHTML;
-              const formattedContent = escaped.replace(
-                /(https?:\/\/[^\s]+)/g,
-                '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
-              );
-              contentEl.innerHTML = formattedContent;
-
-              if (btnEl)
-                btnEl.textContent = data.btn_text || "Đã hiểu / Tiếp tục";
-              backdrop.style.display = "flex";
-            }
-          }
-        } catch (e) {
-          console.error("Error loading announcement popup:", e);
-        }
-      }
-
       function closeAnnouncementPopup() {
         const backdrop = document.getElementById("announcementPopupBackdrop");
         if (backdrop) backdrop.style.display = "none";
@@ -1629,9 +1810,6 @@
       if (!enforceMobileSecurity()) {
         // Bị chặn
       } else {
-        // Khởi động thông báo nổi
-        initAnnouncementPopup();
-
         // Initialize check (load links manually on page entry)
         checkAuthAndLoadLinks();
 
@@ -1648,8 +1826,8 @@
       }
 
       // Giám sát liên tục khi người dùng cố tình bật F12 hoặc đổi kích thước cửa sổ giả lập
-      window.addEventListener("resize", enforceMobileSecurity);
-      window.addEventListener("orientationchange", enforceMobileSecurity);
+      // window.addEventListener("resize", enforceMobileSecurity);
+      // window.addEventListener("orientationchange", enforceMobileSecurity);
     </script>
   </body>
 </html>
