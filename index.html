@@ -12,36 +12,48 @@
     <title>Kênh Link TikTok - ShopLink</title>
     <link rel="stylesheet" href="/style.css" />
     <style>
+      html,
+      body {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
       .settings-fab {
-        position: fixed;
-        right: 16px;
-        bottom: 16px;
-        z-index: 900;
-        width: 46px;
-        height: 46px;
-        border-radius: 50%;
+        position: relative;
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 8px;
         border: 1px solid rgba(255, 255, 255, 0.15);
-        background: rgba(20, 20, 20, 0.92);
+        background: rgba(255, 255, 255, 0.06);
         color: #fff;
-        font-size: 20px;
+        font-size: 16px;
         cursor: pointer;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
       }
       .settings-fab .dot {
         position: absolute;
-        top: 6px;
-        right: 6px;
-        width: 9px;
-        height: 9px;
+        top: 3px;
+        right: 3px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         background: #ff7a00;
         display: none;
       }
       .settings-fab.filtering .dot {
         display: block;
+      }
+      .settings-fab.with-label {
+        width: auto;
+        padding: 0 14px;
+        gap: 6px;
+        height: 38px;
+        margin-top: 14px;
+        font-size: 13px;
+        font-weight: 700;
       }
       .settings-backdrop {
         position: fixed;
@@ -335,6 +347,13 @@
           >
           <button class="copy-btn" onclick="copyDeviceId()">Sao chép</button>
         </div>
+        <button
+          type="button"
+          class="settings-fab with-label"
+          onclick="openSettings()"
+        >
+          ⚙️ Cài đặt Device ID<span class="dot"></span>
+        </button>
       </div>
     </div>
 
@@ -453,6 +472,14 @@
               />
             </svg>
           </button>
+          <button
+            type="button"
+            class="settings-fab"
+            onclick="openSettings()"
+            title="Cài đặt"
+          >
+            ⚙️<span class="dot"></span>
+          </button>
         </div>
       </div>
 
@@ -523,16 +550,6 @@
         </p>
       </div>
     </div>
-
-    <button
-      type="button"
-      id="settingsFab"
-      class="settings-fab"
-      onclick="openSettings()"
-      title="Cài đặt"
-    >
-      ⚙️<span class="dot"></span>
-    </button>
 
     <div
       id="settingsBackdrop"
@@ -1001,9 +1018,10 @@
       }
 
       function updateSettingsIndicator() {
-        const fab = document.getElementById("settingsFab");
-        if (fab)
-          fab.classList.toggle("filtering", parseRatio(ratioFilter) !== null);
+        const on = parseRatio(ratioFilter) !== null;
+        document
+          .querySelectorAll(".settings-fab")
+          .forEach((el) => el.classList.toggle("filtering", on));
       }
 
       function openSettings() {
@@ -1826,8 +1844,8 @@
       }
 
       // Giám sát liên tục khi người dùng cố tình bật F12 hoặc đổi kích thước cửa sổ giả lập
-      // window.addEventListener("resize", enforceMobileSecurity);
-      // window.addEventListener("orientationchange", enforceMobileSecurity);
+      window.addEventListener("resize", enforceMobileSecurity);
+      window.addEventListener("orientationchange", enforceMobileSecurity);
     </script>
   </body>
 </html>
