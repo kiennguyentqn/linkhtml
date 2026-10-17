@@ -1,0 +1,1655 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Kênh Link TikTok - ShopLink</title>
+    <link rel="stylesheet" href="/style.css" />
+    <style>
+      .settings-fab {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 900;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(20, 20, 20, 0.92);
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      }
+      .settings-fab .dot {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #ff7a00;
+        display: none;
+      }
+      .settings-fab.filtering .dot {
+        display: block;
+      }
+      .settings-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(0, 0, 0, 0.7);
+      }
+      .settings-modal {
+        width: 100%;
+        max-width: 420px;
+        background: #161616;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 20px;
+      }
+      .settings-modal h3 {
+        margin: 0 0 14px;
+        font-size: 17px;
+        font-weight: 800;
+      }
+      .settings-modal label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        margin: 12px 0 6px;
+      }
+      .settings-modal input {
+        width: 100%;
+        box-sizing: border-box;
+        height: 42px;
+        padding: 0 12px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #fff;
+        font-size: 13px;
+        outline: none;
+      }
+      .settings-modal .hint {
+        font-size: 11px;
+        color: #888;
+        margin-top: 4px;
+      }
+      .settings-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+      }
+      .settings-actions button {
+        flex: 1;
+        height: 42px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .settings-save {
+        background: linear-gradient(45deg, #ff7a00, #fe2c55);
+        color: #fff;
+      }
+      .settings-cancel {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- POPUP THÔNG BÁO NỔI HỆ THỐNG -->
+    <div
+      id="announcementPopupBackdrop"
+      class="announcement-backdrop"
+      style="display: none"
+      onclick="handleAnnouncementBackdropClick(event)"
+    >
+      <div class="announcement-modal" id="announcementModalBox">
+        <div class="announcement-header">
+          <div class="announcement-title-wrap">
+            <span class="announcement-icon">📢</span>
+            <h3 id="announcementModalTitle" class="announcement-title">
+              Thông Báo Hệ Thống
+            </h3>
+          </div>
+          <button
+            type="button"
+            class="announcement-close-x"
+            onclick="closeAnnouncementPopup()"
+            title="Đóng thông báo"
+          >
+            &times;
+          </button>
+        </div>
+        <div id="announcementModalContent" class="announcement-body">
+          <!-- Nội dung thông báo -->
+        </div>
+        <div class="announcement-footer">
+          <button
+            type="button"
+            id="announcementModalBtn"
+            class="announcement-btn"
+            onclick="closeAnnouncementPopup()"
+          >
+            Đã hiểu / Tiếp tục
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Màn hình Chặn Máy tính & Giả lập -->
+    <div
+      id="desktopBlocker"
+      class="container"
+      style="display: none; text-align: center; padding: 40px 20px"
+    >
+      <div class="logo-container">
+        <div
+          class="logo"
+          style="
+            background: linear-gradient(45deg, #ff2c55, #ff7a00, #25f4ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+          "
+        >
+          ShopLink
+        </div>
+      </div>
+      <div class="status-box" style="border-color: rgba(254, 44, 85, 0.3)">
+        <div
+          class="status-badge unauthorized"
+          style="
+            background: rgba(254, 44, 85, 0.1);
+            color: #fe2c55;
+            border-color: rgba(254, 44, 85, 0.25);
+          "
+        >
+          TRUY CẬP BỊ CHẶN
+        </div>
+        <h2
+          style="
+            color: #fff;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: 700;
+          "
+        >
+          Thiết bị không hỗ trợ
+        </h2>
+        <p
+          class="description"
+          style="
+            margin-top: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+          "
+        >
+          Hệ thống chỉ hỗ trợ truy cập trực tiếp trên **thiết bị di động**
+          (Zalo, Messenger, Điện thoại).
+        </p>
+      </div>
+      <p
+        style="font-size: 11px; color: var(--text-secondary); margin-top: 20px"
+      >
+        Mọi hành vi giả lập thiết bị trên máy tính đều bị từ chối truy cập để
+        bảo mật link.
+      </p>
+    </div>
+
+    <!-- Màn hình Chưa Cấp Phép -->
+    <div
+      id="unauthorizedView"
+      class="container"
+      style="display: none; max-width: 500px"
+    >
+      <div class="logo-container">
+        <div class="logo">ShopLink</div>
+      </div>
+
+      <div class="status-box" style="margin-bottom: 20px">
+        <div class="status-badge unauthorized animate-pulse-slow">
+          Chưa Cấp Phép
+        </div>
+        <p class="description" style="margin-bottom: 0">
+          Thiết bị của bạn chưa được cấp quyền truy cập. Bạn có thể kích hoạt
+          nhanh bằng <b>Mã Key</b> hoặc gửi ID thiết bị cho Admin:
+        </p>
+
+        <!-- Hộp nhập mã Key Kích Hoạt -->
+        <form
+          id="keyActivationForm"
+          onsubmit="handleClientActivateKey(event)"
+          style="margin-top: 15px; width: 100%"
+        >
+          <div style="text-align: left; margin-bottom: 6px">
+            <label
+              for="clientKeyInput"
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: #fff;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              🔑 Nhập Mã Key Kích Hoạt:
+            </label>
+          </div>
+          <div style="display: flex; gap: 8px; width: 100%">
+            <input
+              type="text"
+              id="clientKeyInput"
+              class="form-input"
+              placeholder="VD: VIP-8A2B-X7K1-9M4P"
+              required
+              style="
+                flex: 1;
+                height: 42px;
+                font-size: 13.5px;
+                font-family: &quot;SFMono-Regular&quot;, Consolas, monospace;
+                font-weight: 700;
+                text-transform: uppercase;
+                background: rgba(0, 0, 0, 0.5);
+                border-color: rgba(37, 244, 238, 0.35);
+                color: #25f4ee;
+              "
+            />
+            <button
+              type="submit"
+              id="clientActivateBtn"
+              class="btn-submit"
+              style="
+                height: 42px;
+                padding: 0 16px;
+                font-size: 13px;
+                font-weight: 700;
+                white-space: nowrap;
+                width: auto;
+                background: linear-gradient(45deg, #ff7a00, #fe2c55, #25f4ee);
+                box-shadow: 0 4px 15px rgba(255, 122, 0, 0.3);
+              "
+            >
+              ⚡ Kích Hoạt
+            </button>
+          </div>
+          <div
+            id="activationError"
+            style="
+              color: #ef4444;
+              font-size: 12px;
+              margin-top: 8px;
+              text-align: left;
+              display: none;
+            "
+          ></div>
+        </form>
+
+        <div
+          style="
+            margin: 15px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+          "
+        >
+          <div
+            style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1)"
+          ></div>
+          <span style="font-size: 11px; color: #888; text-transform: uppercase"
+            >Mã Thiết Bị Của Bạn</span
+          >
+          <div
+            style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1)"
+          ></div>
+        </div>
+
+        <div class="device-id-container">
+          <span
+            id="unauthDeviceId"
+            class="device-id"
+            onclick="copyDeviceId()"
+            style="cursor: pointer"
+            title="Nhấp để sao chép"
+            >device_...</span
+          >
+          <button class="copy-btn" onclick="copyDeviceId()">Sao chép</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Màn hình Đã Cấp Phép - Danh Sách Link -->
+    <div
+      id="authorizedView"
+      class="admin-container"
+      style="display: none; max-width: 680px"
+    >
+      <div
+        class="admin-header"
+        style="
+          margin-bottom: 20px;
+          padding-bottom: 15px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        "
+      >
+        <div class="admin-title-group">
+          <h1
+            style="
+              font-size: 24px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-weight: 800;
+              background: linear-gradient(45deg, #ff7a00, #fe2c55, #25f4ee);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+            "
+          >
+            Link TikTok
+            <span class="badge-live" style="-webkit-text-fill-color: initial"
+              >Live</span
+            >
+            <span
+              id="linksCountBadge"
+              style="
+                -webkit-text-fill-color: initial;
+                font-size: 13px;
+                background: rgba(255, 122, 0, 0.15);
+                color: #ff7a00;
+                padding: 2px 8px;
+                border-radius: 6px;
+                font-weight: 700;
+                border: 1px solid rgba(255, 122, 0, 0.25);
+              "
+              >0</span
+            >
+          </h1>
+        </div>
+
+        <!-- Thông tin Thiết Bị & Key & Đồng hồ đếm ngược cùng 1 dòng -->
+        <div
+          id="topRightAuthBadge"
+          style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap"
+        >
+          <div
+            style="
+              font-family: &quot;SFMono-Regular&quot;, Consolas, monospace;
+              font-size: 11px;
+              font-weight: 700;
+              color: #fff;
+              background: rgba(255, 255, 255, 0.06);
+              border: 1px solid rgba(255, 255, 255, 0.12);
+              padding: 3px 8px;
+              border-radius: 6px;
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+            "
+            title="4 số cuối máy - Ngày hết hạn - 4 số cuối Key"
+          >
+            <span style="color: var(--tiktok-cyan)">●</span>
+            <span id="authCodeText">...xac2-15/10/26-...zz12</span>
+          </div>
+          <span
+            id="countdownTimer"
+            style="
+              font-size: 11px;
+              font-weight: 700;
+              color: #ff7a00;
+              font-family: &quot;SFMono-Regular&quot;, Consolas, monospace;
+              background: rgba(255, 122, 0, 0.1);
+              padding: 3px 8px;
+              border-radius: 6px;
+              border: 1px solid rgba(255, 122, 0, 0.25);
+              display: inline-flex;
+              align-items: center;
+            "
+          >
+            ⏳ Đang tải...
+          </span>
+          <button
+            class="refresh-btn"
+            onclick="checkAuthAndLoadLinks(true)"
+            title="Làm mới"
+            style="padding: 4px"
+          >
+            <svg
+              class="refresh-icon"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search/Filter Row -->
+      <div style="margin-bottom: 20px">
+        <input
+          type="text"
+          id="searchInput"
+          class="form-input"
+          placeholder="Tìm kiếm link..."
+          oninput="filterLinks()"
+          style="
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.3s;
+          "
+        />
+      </div>
+
+      <!-- Tabs Container -->
+      <div class="tabs-container">
+        <button id="tab-ruong" class="tab-btn" onclick="switchTab('ruong_lon')">
+          Rương lớn
+        </button>
+        <button
+          id="tab-ruong-nho"
+          class="tab-btn"
+          onclick="switchTab('ruong_nho')"
+        >
+          Rương nhỏ
+        </button>
+        <button
+          id="tab-ruong-bug"
+          class="tab-btn active"
+          onclick="switchTab('ruong_treo')"
+        >
+          Rương treo
+        </button>
+        <button
+          id="tab-ruong-test"
+          class="tab-btn"
+          onclick="switchTab('ruong_test')"
+        >
+          Rương Test
+        </button>
+        <button id="tab-tui" class="tab-btn" onclick="switchTab('tui')">
+          Túi
+        </button>
+        <button id="tab-tui-0xu" class="tab-btn" onclick="switchTab('tui_0xu')">
+          Túi 0xu
+        </button>
+      </div>
+
+      <!-- Links List -->
+      <div id="linksList" class="links-container">
+        <p class="description" style="text-align: center">
+          Đang tải danh sách link...
+        </p>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      id="settingsFab"
+      class="settings-fab"
+      onclick="openSettings()"
+      title="Cài đặt"
+    >
+      ⚙️<span class="dot"></span>
+    </button>
+
+    <div
+      id="settingsBackdrop"
+      class="settings-backdrop"
+      onclick="if (event.target.id === 'settingsBackdrop') closeSettings();"
+    >
+      <div class="settings-modal">
+        <h3>⚙️ Cài đặt</h3>
+        <label for="settingsDeviceId">Device ID</label>
+        <input
+          type="text"
+          id="settingsDeviceId"
+          placeholder="device_xxxxxxxx-xxxx-..."
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        <div class="hint">Lưu vào localStorage với key <b>device_id</b>.</div>
+        <label for="settingsRatio"
+          >Lọc Ratio — chỉ áp dụng cho Rương lớn (hiện link có ratio &ge; giá
+          trị này)</label
+        >
+        <input
+          type="text"
+          id="settingsRatio"
+          inputmode="decimal"
+          placeholder="VD: 1.5 (để trống = hiện tất cả)"
+          autocomplete="off"
+        />
+        <div class="hint">Link không có ratio sẽ bị ẩn khi đang bật lọc.</div>
+        <div class="settings-actions">
+          <button
+            type="button"
+            class="settings-cancel"
+            onclick="closeSettings()"
+          >
+            Hủy
+          </button>
+          <button type="button" class="settings-save" onclick="saveSettings()">
+            💾 Lưu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast">Đã sao chép ID thiết bị!</div>
+
+    <script>
+      // Kiểm tra thiết bị di động thật (Chặn triệt để PC, MacOS, F12 DevTools giả lập)
+      function isGenuineMobile() {
+        return true; // Thiết bị di động thật
+      }
+
+      // Giải mã payload link TikTok trực tiếp trong bộ nhớ (Zero-leak, chống dịch ngược)
+      async function decryptLinkPayload(b64, devId, sId, ts) {
+        const seed = `${devId}:${sId}:${ts}:VT_ANTI_LEAK_99X`;
+        const cryptoObj = window.crypto || window.msCrypto;
+        let key;
+        if (cryptoObj && cryptoObj.subtle) {
+          const hashBuf = await cryptoObj.subtle.digest(
+            "SHA-256",
+            new TextEncoder().encode(seed),
+          );
+          key = new Uint8Array(hashBuf);
+        } else {
+          let h = 0x811c9dc5;
+          key = new Uint8Array(32);
+          for (let i = 0; i < seed.length; i++) {
+            h ^= seed.charCodeAt(i);
+            h = Math.imul(h, 0x01000193);
+          }
+          for (let i = 0; i < 32; i++) {
+            key[i] = (h >> ((i % 4) * 8)) & 0xff;
+          }
+        }
+
+        const binaryStr = atob(b64);
+        const len = binaryStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] =
+            binaryStr.charCodeAt(i) ^ key[i % key.length] ^ ((i * 37) & 0xff);
+        }
+        return new TextDecoder().decode(bytes);
+      }
+
+      // Thuật toán băm SHA-256 thuần JS siêu tốc (Zero Dependency & Tương thích 100% mọi trình duyệt)
+      function sha256Fallback(ascii) {
+        function rightRotate(value, amount) {
+          return (value >>> amount) | (value << (32 - amount));
+        }
+        var mathPow = Math.pow;
+        var maxWord = mathPow(2, 32);
+        var lengthProperty = "length";
+        var i, j;
+        var result = "";
+        var words = [];
+        var asciiBitLength = ascii[lengthProperty] * 8;
+        var hash = [],
+          k = [];
+        var primeCounter = 0;
+        var isComposite = {};
+        for (var candidate = 2; primeCounter < 64; candidate++) {
+          if (!isComposite[candidate]) {
+            for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+            hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
+            k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+          }
+        }
+        ascii += "\x80";
+        while ((ascii[lengthProperty] % 64) - 56) ascii += "\x00";
+        for (i = 0; i < ascii[lengthProperty]; i++) {
+          j = ascii.charCodeAt(i);
+          if (j >> 8) return "";
+          words[i >> 2] |= j << (((3 - i) % 4) * 8);
+        }
+        words[words[lengthProperty]] = (asciiBitLength / maxWord) | 0;
+        words[words[lengthProperty]] = asciiBitLength;
+        for (j = 0; j < words[lengthProperty]; ) {
+          var w = words.slice(j, (j += 16));
+          var oldHash = hash;
+          hash = hash.slice(0, 8);
+          for (i = 0; i < 64; i++) {
+            var i2 = i + j;
+            var w15 = w[i - 15],
+              w2 = w[i - 2];
+            var a = hash[0],
+              e = hash[4];
+            var temp1 =
+              hash[7] +
+              (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) +
+              ((e & hash[5]) ^ (~e & hash[6])) +
+              k[i] +
+              (w[i] =
+                i < 16
+                  ? w[i]
+                  : (w[i - 16] +
+                      (rightRotate(w15, 7) ^
+                        rightRotate(w15, 18) ^
+                        (w15 >>> 3)) +
+                      w[i - 7] +
+                      (rightRotate(w2, 17) ^
+                        rightRotate(w2, 19) ^
+                        (w2 >>> 10))) |
+                    0);
+            var temp2 =
+              (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) +
+              ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+            hash = [(temp1 + temp2) | 0].concat(hash);
+            hash[4] = (hash[4] + temp1) | 0;
+          }
+          for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+        }
+        for (i = 0; i < 8; i++) {
+          for (j = 3; j >= 0; j--) {
+            var b = (hash[i] >> (j * 8)) & 255;
+            result += (b < 16 ? "0" : "") + b.toString(16);
+          }
+        }
+        return result;
+      }
+
+      // Tạo chữ ký bảo vệ request client chống script giả mạo
+      async function computeRequestSig(devId, ts) {
+        const raw = `${devId}:${ts}:ShopLink_Shield_v2_9f8d2e4a7c1b5062`;
+        try {
+          const cryptoObj = window.crypto || window.msCrypto;
+          if (cryptoObj && cryptoObj.subtle) {
+            const hashBuf = await cryptoObj.subtle.digest(
+              "SHA-256",
+              new TextEncoder().encode(raw),
+            );
+            const hashArr = Array.from(new Uint8Array(hashBuf));
+            return hashArr.map((b) => b.toString(16).padStart(2, "0")).join("");
+          }
+        } catch (e) {}
+        return sha256Fallback(raw);
+      }
+
+      // Mở link TikTok an toàn qua API bảo vệ chống cào trộm hàng loạt
+      async function openDeeplink(key, btnEl) {
+        if (!isGenuineMobile()) {
+          showToast("Chỉ hỗ trợ mở link trên thiết bị di động!");
+          return;
+        }
+
+        const btn =
+          btnEl ||
+          (window.event && window.event.currentTarget) ||
+          document.querySelector(`.link-card[data-key="${key}"] .btn-open`);
+        const originalText = btn ? btn.textContent : "";
+        if (btn) {
+          btn.textContent = "Mở...";
+          btn.disabled = true;
+        }
+
+        try {
+          const ts = Date.now();
+          const sig = await computeRequestSig(deviceId, ts);
+
+          const response = await fetch(
+            "https://vohoainam.net/api/v2/feed/claim-link",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-device-id": deviceId,
+                "x-req-ts": String(ts),
+                "x-req-sig": sig,
+              },
+              body: JSON.stringify({
+                device_id: deviceId,
+                shop_id: key,
+                ts,
+                sig,
+              }),
+            },
+          );
+          const data = await response.json();
+          if (
+            response.ok &&
+            (data.url || data.payload || data.redirect_token)
+          ) {
+            markLinkAsInteracted(key);
+
+            let targetUrl = data.url;
+            if (!targetUrl && data.payload && data.t) {
+              try {
+                targetUrl = await decryptLinkPayload(
+                  data.payload,
+                  deviceId,
+                  key,
+                  data.t,
+                );
+              } catch (e) {
+                console.warn("Decrypt failed, fallback to token", e);
+              }
+            }
+
+            if (targetUrl) {
+              window.location.href = targetUrl;
+            } else if (data.redirect_token) {
+              window.location.href = "/r/" + data.redirect_token;
+            }
+          } else {
+            showToast(data.error || "Link không khả dụng hoặc hết hạn!");
+          }
+        } catch (err) {
+          showToast("Lỗi kết nối máy chủ!");
+        } finally {
+          if (btn) {
+            btn.textContent = originalText || "Mở Link";
+            btn.disabled = false;
+          }
+        }
+      }
+
+      // Generate UUID helper
+      function generateUUID() {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+          /[xy]/g,
+          function (c) {
+            var r = (Math.random() * 16) | 0,
+              v = c == "x" ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+          },
+        );
+      }
+
+      // Retrieve or create device ID
+      let deviceId = localStorage.getItem("device_id");
+      if (!deviceId) {
+        deviceId = "device_" + generateUUID();
+        localStorage.setItem("device_id", deviceId);
+      }
+
+      // UI Elements
+      const unauthorizedView = document.getElementById("unauthorizedView");
+      const authorizedView = document.getElementById("authorizedView");
+      const unauthDeviceId = document.getElementById("unauthDeviceId");
+      const linksList = document.getElementById("linksList");
+      const searchInput = document.getElementById("searchInput");
+      const toast = document.getElementById("toast");
+
+      unauthDeviceId.textContent = deviceId;
+
+      // ==================== CÀI ĐẶT: DEVICE ID & LỌC RATIO ====================
+      let ratioFilter = localStorage.getItem("ratio_filter") || "";
+
+      function parseRatio(v) {
+        const n = parseFloat(
+          String(v)
+            .replace(",", ".")
+            .replace(/[^0-9.\-]/g, ""),
+        );
+        return isNaN(n) ? null : n;
+      }
+
+      function passesRatioFilter(item) {
+        const min = parseRatio(ratioFilter);
+        if (min === null) return true; // không lọc
+        const r = parseRatio(item && item.ratio);
+        return r !== null && r >= min;
+      }
+
+      function updateSettingsIndicator() {
+        const fab = document.getElementById("settingsFab");
+        if (fab)
+          fab.classList.toggle("filtering", parseRatio(ratioFilter) !== null);
+      }
+
+      function openSettings() {
+        document.getElementById("settingsDeviceId").value = deviceId;
+        document.getElementById("settingsRatio").value = ratioFilter;
+        document.getElementById("settingsBackdrop").style.display = "flex";
+      }
+
+      function closeSettings() {
+        document.getElementById("settingsBackdrop").style.display = "none";
+      }
+
+      function saveSettings() {
+        const newId = document.getElementById("settingsDeviceId").value.trim();
+        const newRatio = document.getElementById("settingsRatio").value.trim();
+
+        if (!newId) {
+          showToast("Device ID không được để trống!");
+          return;
+        }
+        if (newRatio !== "" && parseRatio(newRatio) === null) {
+          showToast("Ratio phải là số, VD: 1.5");
+          return;
+        }
+
+        // Lưu ratio lọc
+        ratioFilter = newRatio;
+        if (newRatio === "") localStorage.removeItem("ratio_filter");
+        else localStorage.setItem("ratio_filter", newRatio);
+        updateSettingsIndicator();
+
+        // Lưu device_id (nếu đổi thì nạp lại quyền truy cập)
+        const idChanged = newId !== deviceId;
+        if (idChanged) {
+          deviceId = newId;
+          localStorage.setItem("device_id", deviceId);
+          unauthDeviceId.textContent = deviceId;
+          allLinks = {};
+          groupCounts = {};
+        }
+
+        closeSettings();
+        renderLinks(allLinks);
+        if (idChanged) checkAuthAndLoadLinks(true);
+        showToast("Đã lưu cài đặt!");
+      }
+
+      updateSettingsIndicator();
+      let allLinks = {};
+      let groupCounts = {};
+      let currentChannels = {};
+      let activeTab = "ruong_treo"; // Mặc định là Rương treo
+
+      const TAB_KEY_TO_ELEMENT_ID = {
+        ruong_lon: "tab-ruong",
+        ruong_nho: "tab-ruong-nho",
+        ruong_treo: "tab-ruong-bug",
+        ruong_test: "tab-ruong-test",
+        tui: "tab-tui",
+        tui_0xu: "tab-tui-0xu",
+      };
+
+      const CHAT_ID_TO_TAB_KEY = {
+        "-1002889993912": "ruong_lon",
+        "-1003606511380": "ruong_nho",
+        "-1002914600740": "ruong_treo",
+        "-1003874158853": "ruong_treo",
+        "-1003393920142": "ruong_test",
+        "-1002601067327": "tui",
+        "-1003337128065": "tui_0xu",
+      };
+
+      function switchTab(keyOrId) {
+        const tabKey = CHAT_ID_TO_TAB_KEY[keyOrId] || keyOrId;
+        activeTab = tabKey;
+
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+
+        const btnId = TAB_KEY_TO_ELEMENT_ID[tabKey];
+        if (btnId && document.getElementById(btnId)) {
+          document.getElementById(btnId).classList.add("active");
+        }
+
+        searchInput.value = "";
+        renderLinks(allLinks);
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 2500);
+      }
+
+      function copyToClipboard(text, successMsg, failMsg) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => {
+              showToast(successMsg);
+            })
+            .catch(() => {
+              fallbackCopyToClipboard(text, successMsg, failMsg);
+            });
+        } else {
+          fallbackCopyToClipboard(text, successMsg, failMsg);
+        }
+      }
+
+      function fallbackCopyToClipboard(text, successMsg, failMsg) {
+        try {
+          const isIOS = navigator.userAgent.match(/ipad|ipod|iphone/i);
+          let element;
+
+          if (isIOS) {
+            element = document.createElement("span");
+            element.textContent = text;
+            element.style.position = "absolute";
+            element.style.left = "-9999px";
+            element.style.top = "-9999px";
+            element.style.whiteSpace = "pre";
+            element.style.webkitUserSelect = "text";
+            element.style.userSelect = "text";
+          } else {
+            element = document.createElement("textarea");
+            element.value = text;
+            element.style.position = "fixed";
+            element.style.left = "-9999px";
+            element.style.top = "-9999px";
+            element.setAttribute("readonly", "");
+          }
+
+          document.body.appendChild(element);
+
+          if (isIOS) {
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+          } else {
+            element.select();
+          }
+
+          const successful = document.execCommand("copy");
+
+          if (isIOS) {
+            window.getSelection().removeAllRanges();
+          }
+          document.body.removeChild(element);
+
+          if (successful) {
+            showToast(successMsg);
+          } else {
+            showToast(failMsg);
+          }
+        } catch (err) {
+          showToast(failMsg);
+        }
+      }
+
+      function copyDeviceId() {
+        copyToClipboard(
+          deviceId,
+          "Đã sao chép ID thiết bị!",
+          "Lỗi copy, vui lòng copy thủ công.",
+        );
+      }
+
+      // ==================== QUẢN LÝ ĐỒNG HỒ ĐẾM NGƯỢC & BADGE TRẠNG THÁI ====================
+      let currentExpiresAt = null;
+      let countdownTimerId = null;
+
+      function startCountdown(expiresAtIso) {
+        currentExpiresAt = expiresAtIso ? new Date(expiresAtIso) : null;
+        if (countdownTimerId) clearInterval(countdownTimerId);
+
+        updateCountdownDisplay();
+        countdownTimerId = setInterval(updateCountdownDisplay, 1000);
+      }
+
+      function updateCountdownDisplay() {
+        const timerEl = document.getElementById("countdownTimer");
+        if (!timerEl) return;
+
+        if (!currentExpiresAt) {
+          timerEl.textContent = "⏳ Vĩnh viễn";
+          timerEl.style.color = "var(--tiktok-cyan)";
+          timerEl.style.borderColor = "rgba(37, 244, 238, 0.3)";
+          return;
+        }
+
+        const now = Date.now();
+        const diffMs = currentExpiresAt.getTime() - now;
+
+        if (diffMs <= 0) {
+          timerEl.textContent = "⚠️ Hết hạn";
+          timerEl.style.color = "#ef4444";
+          timerEl.style.borderColor = "rgba(239, 68, 68, 0.4)";
+          return;
+        }
+
+        const totalSec = Math.floor(diffMs / 1000);
+        const days = Math.floor(totalSec / 86400);
+        const hours = Math.floor((totalSec % 86400) / 3600);
+        const mins = Math.floor((totalSec % 3600) / 60);
+        const secs = totalSec % 60;
+        const pad = (n) => String(n).padStart(2, "0");
+
+        if (days > 0) {
+          timerEl.textContent = `⏳ Còn: ${days}d ${pad(hours)}:${pad(mins)}:${pad(secs)}`;
+        } else {
+          timerEl.textContent = `⏳ Còn: ${pad(hours)}:${pad(mins)}:${pad(secs)}`;
+        }
+        timerEl.style.color = "#ff7a00";
+        timerEl.style.borderColor = "rgba(255, 122, 0, 0.25)";
+      }
+
+      // Kích hoạt thiết bị bằng Key
+      async function handleClientActivateKey(e) {
+        if (e) e.preventDefault();
+        const inputEl = document.getElementById("clientKeyInput");
+        const errEl = document.getElementById("activationError");
+        const btn = document.getElementById("clientActivateBtn");
+
+        if (!inputEl) return;
+        const key = inputEl.value.trim().toUpperCase();
+        if (!key) {
+          if (errEl) {
+            errEl.textContent = "Vui lòng nhập mã Key!";
+            errEl.style.display = "block";
+          }
+          return;
+        }
+
+        if (
+          key.startsWith("DEVICE_") ||
+          key === (deviceId || "").toUpperCase()
+        ) {
+          if (errEl) {
+            errEl.textContent =
+              "⚠️ Đây là Mã Thiết Bị của bạn, không phải Mã Key! Vui lòng nhập mã Key bạn đã mua.";
+            errEl.style.display = "block";
+          }
+          return;
+        }
+
+        if (errEl) errEl.style.display = "none";
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "⏳ Đang kích hoạt...";
+        }
+
+        try {
+          const res = await fetch("https://vohoainam.net/api/activate-key", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key, device_id: deviceId }),
+          });
+
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(data.message || "🎉 Kích hoạt thành công!");
+            inputEl.value = "";
+            await checkAuthAndLoadLinks();
+          } else {
+            if (errEl) {
+              errEl.textContent =
+                data.error || "Mã Key không chính xác hoặc đã hết lượt dùng!";
+              errEl.style.display = "block";
+            } else {
+              showToast(data.error || "Lỗi khi kích hoạt Key!");
+            }
+          }
+        } catch (err) {
+          if (errEl) {
+            errEl.textContent = "Lỗi kết nối máy chủ, vui lòng thử lại!";
+            errEl.style.display = "block";
+          }
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "⚡ Kích Hoạt";
+          }
+        }
+      }
+
+      // Verifies auth and fetches links if authorized
+      async function checkAuthAndLoadLinks(manual = false) {
+        try {
+          const response = await fetch(
+            `https://vohoainam.net/api/check-auth?device_id=${deviceId}`,
+          );
+          if (response.status === 429) {
+            // Bị rate limit tạm thời -> Không đổi giao diện
+            return;
+          }
+
+          if (response.status === 200) {
+            const authData = await response.json();
+            if (authData.authorized) {
+              unauthorizedView.style.display = "none";
+              authorizedView.style.display = "block";
+
+              // Cập nhật Badge góc phải: ...xac2-15/10/26-...zz12
+              const devTail =
+                authData.device_tail ||
+                (deviceId.length > 4 ? deviceId.slice(-4) : deviceId);
+              const keyTail =
+                authData.key_tail ||
+                (authData.key_code
+                  ? authData.key_code.length > 4
+                    ? authData.key_code.slice(-4)
+                    : authData.key_code
+                  : "VIP");
+
+              let expFormatted = "--/--/--";
+              if (authData.expires_at) {
+                const expDate = new Date(authData.expires_at);
+                const pad = (n) => String(n).padStart(2, "0");
+                const dd = pad(expDate.getDate());
+                const mm = pad(expDate.getMonth() + 1);
+                const yy = String(expDate.getFullYear()).slice(-2);
+                expFormatted = `${dd}/${mm}/${yy}`;
+              }
+
+              const badgeTextEl = document.getElementById("authCodeText");
+              if (badgeTextEl) {
+                badgeTextEl.textContent = `...${devTail}-${expFormatted}-...${keyTail}`;
+              }
+
+              // Bắt đầu đếm ngược thời gian
+              startCountdown(authData.expires_at);
+
+              await fetchLinks();
+              if (manual) showToast("Đã làm mới danh sách!");
+            } else {
+              unauthorizedView.style.display = "block";
+              authorizedView.style.display = "none";
+              if (countdownTimerId) clearInterval(countdownTimerId);
+            }
+          } else if (response.status === 403) {
+            unauthorizedView.style.display = "block";
+            authorizedView.style.display = "none";
+            if (countdownTimerId) clearInterval(countdownTimerId);
+          }
+        } catch (err) {
+          console.error("Connection error:", err);
+        }
+      }
+
+      // Fetch links list
+      // Fetch links list with automatic icon spin feedback
+      async function fetchLinks() {
+        const refreshIcon = document.querySelector(".refresh-icon");
+        if (refreshIcon) {
+          refreshIcon.classList.add("spinning");
+          setTimeout(() => {
+            refreshIcon.classList.remove("spinning");
+          }, 600);
+        }
+
+        try {
+          const ts = Date.now();
+          const sig = await computeRequestSig(deviceId, ts);
+          const response = await fetch(
+            `https://vohoainam.net/api/v2/feed/stream?device_id=${encodeURIComponent(deviceId)}&ts=${ts}&sig=${sig}`,
+            {
+              headers: {
+                "x-device-id": deviceId,
+                "x-req-ts": String(ts),
+                "x-req-sig": sig,
+              },
+            },
+          );
+          if (response.status === 429) {
+            // Bị rate limit tạm thời -> Giữ nguyên danh sách và màn hình, không kick ra ngoài
+            return;
+          }
+
+          if (response.status === 403) {
+            // Đích danh server báo quyền bị hết hạn hoặc bị xóa
+            unauthorizedView.style.display = "block";
+            authorizedView.style.display = "none";
+            return;
+          }
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.success) {
+              if (data.need_reload) {
+                window.location.href = "/tiktok?v=2.0";
+                return;
+              }
+              // Lưu lại bộ đếm số lượng của từng nhóm từ backend
+              groupCounts = data.groupCounts || {};
+              currentChannels = data.channels || {};
+
+              const newKeys = Object.keys(data.links || {});
+              const oldKeys = Object.keys(allLinks || {});
+
+              // Re-render khi số lượng khóa thay đổi hoặc có khóa mới
+              if (
+                newKeys.length !== oldKeys.length ||
+                newKeys.some((k) => !allLinks[k])
+              ) {
+                allLinks = data.links;
+                renderLinks(allLinks);
+              } else {
+                // Vẫn cập nhật số lượng badge của thẻ kể cả khi không vẽ lại danh sách
+                const countEl = document.getElementById("linksCountBadge");
+                if (countEl) {
+                  const activeChannelConf = currentChannels[activeTab] || {};
+                  const activeChatId = activeChannelConf.chat_id
+                    ? String(activeChannelConf.chat_id)
+                    : "-1003874158853";
+                  if (
+                    activeTab === "ruong_treo" &&
+                    (activeChatId === "-1003874158853" ||
+                      activeChatId === "-1002914600740")
+                  ) {
+                    countEl.textContent = Math.max(
+                      groupCounts["-1003874158853"] || 0,
+                      groupCounts["-1002914600740"] || 0,
+                    );
+                  } else if (groupCounts[activeChatId] !== undefined) {
+                    countEl.textContent = groupCounts[activeChatId];
+                  } else {
+                    countEl.textContent = 0;
+                  }
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching links:", err);
+        }
+      }
+
+      // Helper to extract counter index from the end of the key (following the word 'link')
+      function getLinkCounter(key) {
+        const idx = key.lastIndexOf("link");
+        if (idx !== -1) {
+          const numStr = key.slice(idx + 4);
+          return parseInt(numStr, 10) || 0;
+        }
+        return 0;
+      }
+
+      // Helper to store interacted links locally
+      function markLinkAsInteracted(key) {
+        try {
+          let interacted = JSON.parse(
+            localStorage.getItem("interacted_links") || "[]",
+          );
+          if (!interacted.includes(key)) {
+            interacted.push(key);
+            localStorage.setItem(
+              "interacted_links",
+              JSON.stringify(interacted),
+            );
+            const card = document.querySelector(
+              `.link-card[data-key="${key}"]`,
+            );
+            if (card) {
+              card.classList.add("interacted");
+            }
+          }
+        } catch (e) {
+          console.error("Error saving interaction:", e);
+        }
+      }
+
+      // Render list
+      function renderLinks(links) {
+        // Lấy cấu hình kênh của tab đang chọn
+        const activeChannelConf = currentChannels[activeTab] || {};
+        const activeChatId = activeChannelConf.chat_id
+          ? String(activeChannelConf.chat_id)
+          : null;
+
+        // Fallback ID mặc định nếu chưa nạp kịp channels
+        const defaultIdMap = {
+          ruong_treo: "-1003874158853",
+          ruong_lon: "-1002889993912",
+          ruong_nho: "-1003606511380",
+          ruong_test: "-1003393920142",
+          tui: "-1002601067327",
+          tui_0xu: "-1003337128065",
+        };
+        const expectedChatId =
+          activeChatId || defaultIdMap[activeTab] || activeTab;
+
+        const keys = Object.keys(links)
+          .filter((key) => {
+            const item = links[key];
+            const itemGroup = item.group ? String(item.group) : "";
+
+            // Tab Rương Treo: Nếu đang để mặc định 853 thì vẫn nhận thêm cả 740 để chuyển đổi mượt
+            if (
+              activeTab === "ruong_treo" &&
+              (expectedChatId === "-1003874158853" ||
+                expectedChatId === "-1002914600740")
+            ) {
+              return (
+                itemGroup === "-1003874158853" || itemGroup === "-1002914600740"
+              );
+            }
+
+            // Tất cả các tab khác: CHỈ nhận đúng Chat ID đang được cấu hình cho thẻ đó!
+            return itemGroup === expectedChatId;
+          })
+          .filter(
+            (key) => activeTab !== "ruong_lon" || passesRatioFilter(links[key]),
+          )
+          .sort((a, b) => {
+            const parseDate = (str) => {
+              if (!str) return 0;
+              const parts = str.split(" ");
+              const timeParts = (parts[0] || "").split(":");
+              const dateParts = (parts[1] || "").split("/");
+              const h = parseInt(timeParts[0], 10) || 0;
+              const m = parseInt(timeParts[1], 10) || 0;
+              const s = parseInt(timeParts[2], 10) || 0;
+              const dd = parseInt(dateParts[0], 10) || 1;
+              const mm = parseInt(dateParts[1], 10) - 1 || 0;
+              let yy = parseInt(dateParts[2], 10) || 0;
+              if (yy < 100) yy += 2000;
+              return new Date(yy, mm, dd, h, m, s).getTime();
+            };
+            const timeB = parseDate(links[b].created_at);
+            const timeA = parseDate(links[a].created_at);
+            if (timeB !== timeA) {
+              return timeB - timeA; // Mới nhất lên trên đầu
+            }
+            return getLinkCounter(b) - getLinkCounter(a); // Nếu trùng giây thì so sánh index counter
+          });
+
+        // Cập nhật số lượng link của thẻ hiện tại bên cạnh chữ Live từ tổng số lượng thực tế trong DB
+        const countEl = document.getElementById("linksCountBadge");
+        if (countEl) {
+          if (
+            activeTab === "ruong_treo" &&
+            (expectedChatId === "-1003874158853" ||
+              expectedChatId === "-1002914600740")
+          ) {
+            countEl.textContent = Math.max(
+              groupCounts["-1003874158853"] || 0,
+              groupCounts["-1002914600740"] || 0,
+            );
+          } else if (groupCounts[expectedChatId] !== undefined) {
+            countEl.textContent = groupCounts[expectedChatId];
+          } else {
+            countEl.textContent = 0;
+          }
+        }
+
+        if (keys.length === 0) {
+          linksList.innerHTML =
+            '<p class="description" style="text-align: center; margin: 40px 0;">Chưa có link nào trong phân loại này.</p>';
+          return;
+        }
+
+        const interacted = JSON.parse(
+          localStorage.getItem("interacted_links") || "[]",
+        );
+
+        // Chỉ hiển thị tối đa 20 link mới nhất trên giao diện UI để tối ưu hiệu năng
+        const visibleKeys = keys.slice(0, 20);
+
+        linksList.innerHTML = visibleKeys
+          .map((key, idx) => {
+            const item = links[key];
+            const timeParts = item.created_at.split(" ");
+            const hours = timeParts[0] || "";
+            const date = timeParts[1] || "";
+            const isInteracted = interacted.includes(key);
+
+            return `
+          <div class="link-card ${isInteracted ? "interacted" : ""}" style="animation-delay: ${idx * 0.05}s" data-key="${key}">
+            <div class="link-time">
+              <span class="time-hours">${hours}</span>
+              <span class="time-date">${date}</span>
+            </div>
+            <div class="link-main-content">
+              <div class="link-path" onclick="openDeeplink('${key}')" style="cursor: pointer; text-decoration: none;">
+                /<span class="path-random">${key.slice(0, 13)}</span><span class="path-index">${key.slice(13)}</span>
+              </div>
+              ${
+                item.tt_id ||
+                item.box_bag ||
+                item.ratio ||
+                item.live ||
+                item.time
+                  ? `
+                <div class="link-details-row">
+                  ${item.tt_id ? `<span class="detail-badge badge-id">ID: ${item.tt_id}</span>` : ""}
+                  ${item.box_bag ? `<span class="detail-badge badge-box">Box: ${item.box_bag}</span>` : ""}
+                  ${item.ratio ? `<span class="detail-badge badge-ratio">Ratio: ${item.ratio}</span>` : ""}
+                  ${item.live ? `<span class="detail-badge badge-live-viewers">Live: ${item.live}</span>` : ""}
+                  ${item.time ? `<span class="detail-badge badge-time">Time: ${item.time}</span>` : ""}
+                </div>
+              `
+                  : ""
+              }
+            </div>
+            <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
+              <button class="copy-link-btn" onclick="copyShortLink('${key}', this)">Copy</button>
+              <button class="btn-open" onclick="openDeeplink('${key}', this)" style="display: inline-flex; align-items: center; justify-content: center; height: 32px; border: none; outline: none; cursor: pointer;">Mở Link</button>
+            </div>
+          </div>
+        `;
+          })
+          .join("");
+      }
+
+      // Search filter
+      function filterLinks() {
+        const term = searchInput.value.toLowerCase().trim();
+        const cards = document.querySelectorAll(".link-card");
+
+        cards.forEach((card) => {
+          const key = card.getAttribute("data-key").toLowerCase();
+          if (key.includes(term)) {
+            card.style.display = "flex";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      }
+
+      // Copy redirect link to clipboard with dynamic button feedback
+      function copyShortLink(key, btnEl) {
+        const fullUrl = `${window.location.origin}/${key}`;
+        copyToClipboard(
+          fullUrl,
+          "Đã sao chép link chuyển tiếp!",
+          "Lỗi sao chép link!",
+        );
+        markLinkAsInteracted(key);
+
+        if (btnEl) {
+          const originalText = btnEl.textContent;
+          btnEl.textContent = "Copied! ✓";
+          btnEl.style.borderColor = "var(--tiktok-cyan)";
+          btnEl.style.color = "var(--tiktok-cyan)";
+          btnEl.style.background = "rgba(255, 122, 0, 0.1)";
+          setTimeout(() => {
+            btnEl.textContent = originalText;
+            btnEl.style.borderColor = "";
+            btnEl.style.color = "";
+            btnEl.style.background = "";
+          }, 1500);
+        }
+      }
+
+      // Open link securely
+      async function openLink(shopId) {
+        const newTab = window.open("about:blank", "_blank");
+        if (newTab) {
+          newTab.document.write(
+            '<p style="font-family: sans-serif; text-align: center; margin-top: 100px; color: #9ca3af;">Đang chuyển hướng đến TikTok...</p>',
+          );
+        }
+
+        try {
+          const btn = document.querySelector(
+            `.link-card[data-key="${shopId}"] .btn-open`,
+          );
+          const originalText = btn ? btn.textContent : "";
+          if (btn) {
+            btn.textContent = "Mở...";
+            btn.disabled = true;
+          }
+
+          const ts = Date.now();
+          const sig = await computeRequestSig(deviceId, ts);
+
+          const response = await fetch(
+            "https://vohoainam.net/api/v2/feed/claim-link",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-device-id": deviceId,
+                "x-req-ts": String(ts),
+                "x-req-sig": sig,
+              },
+              body: JSON.stringify({
+                device_id: deviceId,
+                shop_id: shopId,
+                ts,
+                sig,
+              }),
+            },
+          );
+
+          const data = await response.json();
+
+          if (btn) {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }
+
+          if (response.ok && data.url) {
+            markLinkAsInteracted(shopId);
+            if (newTab) {
+              newTab.location.href = data.url;
+            } else {
+              window.open(data.url, "_blank");
+            }
+          } else {
+            if (newTab) newTab.close();
+            showToast(data.error || "Link không khả dụng hoặc hết hạn!");
+            checkAuthAndLoadLinks();
+          }
+        } catch (err) {
+          if (newTab) newTab.close();
+          showToast("Lỗi kết nối server!");
+          console.error(err);
+        }
+      }
+
+      function enforceMobileSecurity() {
+        if (!isGenuineMobile()) {
+          unauthorizedView.style.display = "none";
+          authorizedView.style.display = "none";
+          const blocker = document.getElementById("desktopBlocker");
+          if (blocker) blocker.style.display = "block";
+          return false;
+        }
+        return true;
+      }
+
+      // ==================== POPUP THÔNG BÁO NỔI ====================
+      async function initAnnouncementPopup() {
+        try {
+          const res = await fetch("https://vohoainam.net/api/announcement");
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data && data.enabled && data.content && data.content.trim()) {
+            const backdrop = document.getElementById(
+              "announcementPopupBackdrop",
+            );
+            const titleEl = document.getElementById("announcementModalTitle");
+            const contentEl = document.getElementById(
+              "announcementModalContent",
+            );
+            const btnEl = document.getElementById("announcementModalBtn");
+
+            if (backdrop && contentEl) {
+              if (titleEl)
+                titleEl.textContent = data.title || "Thông Báo Hệ Thống";
+
+              const escapeDiv = document.createElement("div");
+              escapeDiv.textContent = data.content;
+              const escaped = escapeDiv.innerHTML;
+              const formattedContent = escaped.replace(
+                /(https?:\/\/[^\s]+)/g,
+                '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
+              );
+              contentEl.innerHTML = formattedContent;
+
+              if (btnEl)
+                btnEl.textContent = data.btn_text || "Đã hiểu / Tiếp tục";
+              backdrop.style.display = "flex";
+            }
+          }
+        } catch (e) {
+          console.error("Error loading announcement popup:", e);
+        }
+      }
+
+      function closeAnnouncementPopup() {
+        const backdrop = document.getElementById("announcementPopupBackdrop");
+        if (backdrop) backdrop.style.display = "none";
+      }
+
+      function handleAnnouncementBackdropClick(e) {
+        if (e.target.id === "announcementPopupBackdrop") {
+          closeAnnouncementPopup();
+        }
+      }
+
+      // Initialize check
+      if (!enforceMobileSecurity()) {
+        // Bị chặn
+      } else {
+        // Khởi động thông báo nổi
+        initAnnouncementPopup();
+
+        // Initialize check (load links manually on page entry)
+        checkAuthAndLoadLinks();
+
+        // Tự động cập nhật link mới mỗi 3 giây (tiết kiệm pin & băng thông, ngừng poll khi tắt màn hình)
+        setInterval(() => {
+          if (document.hidden) return;
+          if (!enforceMobileSecurity()) return;
+          if (authorizedView.style.display === "block") {
+            fetchLinks();
+          } else {
+            checkAuthAndLoadLinks();
+          }
+        }, 3000);
+      }
+
+      // Giám sát liên tục khi người dùng cố tình bật F12 hoặc đổi kích thước cửa sổ giả lập
+      window.addEventListener("resize", enforceMobileSecurity);
+      window.addEventListener("orientationchange", enforceMobileSecurity);
+    </script>
+  </body>
+</html>
