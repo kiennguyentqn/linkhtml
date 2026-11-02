@@ -553,158 +553,21 @@
           padding: 0px 4px !important;
         }
       }
-
-      .announcement-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.78);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        z-index: 99999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 16px;
-        animation: fadeInModal 0.25s ease-out;
-      }
-      @keyframes fadeInModal {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-      @keyframes popModal {
-        from {
-          transform: scale(0.92) translateY(10px);
-          opacity: 0;
-        }
-        to {
-          transform: scale(1) translateY(0);
-          opacity: 1;
-        }
-      }
-      .announcement-modal {
-        background: rgba(18, 18, 24, 0.96);
-        border: 1.5px solid rgba(37, 244, 238, 0.35);
-        border-radius: 18px;
-        max-width: 480px;
-        width: 100%;
-        box-shadow:
-          0 20px 60px rgba(0, 0, 0, 0.8),
-          0 0 30px rgba(37, 244, 238, 0.15);
-        overflow: hidden;
-        animation: popModal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        display: flex;
-        flex-direction: column;
-      }
-      .announcement-header {
-        padding: 16px 20px;
-        background: rgba(255, 255, 255, 0.03);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-      }
-      .announcement-title-wrap {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .announcement-icon {
-        font-size: 20px;
-      }
-      .announcement-title {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 800;
-        color: #fff;
-        background: linear-gradient(45deg, #ff7a00, #ff2c55, #25f4ee);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-      .announcement-close-x {
-        background: transparent;
-        border: none;
-        color: #888;
-        font-size: 24px;
-        line-height: 1;
-        cursor: pointer;
-        padding: 0 4px;
-        transition: color 0.2s;
-      }
-      .announcement-close-x:hover {
-        color: #fff;
-      }
-      .announcement-body {
-        padding: 20px;
-        font-size: 14px;
-        line-height: 1.65;
-        color: #e5e7eb;
-        max-height: 60vh;
-        overflow-y: auto;
-        white-space: pre-line;
-        word-break: break-word;
-      }
-      .announcement-body a {
-        color: #25f4ee;
-        text-decoration: underline;
-        word-break: break-all;
-      }
-      .announcement-footer {
-        padding: 14px 20px;
-        background: rgba(255, 255, 255, 0.02);
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
-        display: flex;
-        justify-content: flex-end;
-      }
-      .announcement-btn {
-        background: linear-gradient(45deg, #ff7a00, #ff2c55, #25f4ee);
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 24px;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(255, 122, 0, 0.3);
-        transition: all 0.25s;
-        width: 100%;
-      }
-      .announcement-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(37, 244, 238, 0.4);
-      }
-      .announcement-btn:active {
-        transform: scale(0.98);
-      }
     </style>
   </head>
   <body>
-    <div class="device-id-container">
-      <span
-        id="unauthDeviceId"
-        class="device-id"
-        onclick="copyDeviceId()"
-        style="cursor: pointer"
-        title="Nhấp để sao chép"
-        >device_...</span
-      >
-      <button class="copy-btn" onclick="copyDeviceId()">Sao chép</button>
-    </div>
+    <!-- Device ID (luôn hiển thị) -->
 
-    <!-- THÊM MỚI: ô nhập device_id thủ công -->
+    <!-- Ô nhập device_id thủ công -->
     <div style="margin-top: 10px; display: flex; gap: 8px; width: 100%">
       <input
         type="text"
         id="customDeviceIdInput"
         class="form-input"
         placeholder="Nhập device_id muốn dùng..."
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
         style="
           flex: 1;
           height: 38px;
@@ -772,7 +635,7 @@
             color: var(--text-secondary);
           "
         >
-          Hệ thống chỉ hỗ trợ truy cập trực tiếp trên **thiết bị di động**
+          Hệ thống chỉ hỗ trợ truy cập trực tiếp trên <b>thiết bị di động</b>
           (Zalo, Messenger, Điện thoại).
         </p>
       </div>
@@ -782,127 +645,6 @@
         Mọi hành vi giả lập thiết bị trên máy tính đều bị từ chối truy cập để
         bảo mật link.
       </p>
-    </div>
-
-    <div
-      id="unauthorizedView"
-      class="container"
-      style="display: none; max-width: 500px"
-    >
-      <div class="logo-container">
-        <div class="logo">ShopLink</div>
-      </div>
-
-      <div class="status-box" style="margin-bottom: 20px">
-        <div class="status-badge unauthorized animate-pulse-slow">
-          Chưa Cấp Phép
-        </div>
-        <p class="description" style="margin-bottom: 0">
-          Thiết bị của bạn chưa được cấp quyền truy cập. Bạn có thể kích hoạt
-          nhanh bằng <b>Mã Key</b> hoặc gửi ID thiết bị cho Admin:
-        </p>
-
-        <form
-          id="keyActivationForm"
-          onsubmit="handleClientActivateKey(event)"
-          style="margin-top: 15px; width: 100%"
-        >
-          <div style="text-align: left; margin-bottom: 6px">
-            <label
-              for="clientKeyInput"
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: #fff;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-              "
-            >
-              🔑 Nhập Mã Key Kích Hoạt:
-            </label>
-          </div>
-          <div style="display: flex; gap: 8px; width: 100%">
-            <input
-              type="text"
-              id="clientKeyInput"
-              class="form-input"
-              placeholder="VD: VIP-8A2B-X7K1-9M4P"
-              required
-              style="
-                flex: 1;
-                height: 42px;
-                font-size: 13.5px;
-                font-family: &quot;SFMono-Regular&quot;, Consolas, monospace;
-                font-weight: 700;
-                text-transform: uppercase;
-                background: rgba(0, 0, 0, 0.5);
-                border-color: rgba(37, 244, 238, 0.35);
-                color: #25f4ee;
-              "
-            />
-            <button
-              type="submit"
-              id="clientActivateBtn"
-              class="btn-submit"
-              style="
-                height: 42px;
-                padding: 0 16px;
-                font-size: 13px;
-                font-weight: 700;
-                white-space: nowrap;
-                width: auto;
-                background: linear-gradient(45deg, #ff7a00, #fe2c55, #25f4ee);
-                box-shadow: 0 4px 15px rgba(255, 122, 0, 0.3);
-              "
-            >
-              ⚡ Kích Hoạt
-            </button>
-          </div>
-          <div
-            id="activationError"
-            style="
-              color: #ef4444;
-              font-size: 12px;
-              margin-top: 8px;
-              text-align: left;
-              display: none;
-            "
-          ></div>
-        </form>
-
-        <div
-          style="
-            margin: 15px 0 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-          "
-        >
-          <div
-            style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1)"
-          ></div>
-          <span style="font-size: 11px; color: #888; text-transform: uppercase"
-            >Mã Thiết Bị Của Bạn</span
-          >
-          <div
-            style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1)"
-          ></div>
-        </div>
-
-        <div class="device-id-container">
-          <span
-            id="unauthDeviceId"
-            class="device-id"
-            onclick="copyDeviceId()"
-            style="cursor: pointer"
-            title="Nhấp để sao chép"
-            >device_...</span
-          >
-          <button class="copy-btn" onclick="copyDeviceId()">Sao chép</button>
-        </div>
-      </div>
     </div>
 
     <div
@@ -997,6 +739,7 @@
             ⏳ Đang tải...
           </span>
           <button
+            type="button"
             class="refresh-btn"
             onclick="checkAuthAndLoadLinks(true)"
             title="Làm mới"
@@ -1041,7 +784,29 @@
           "
         />
       </div>
-
+      <div style="margin-bottom: 20px">
+        <input
+          type="number"
+          id="ratioFilterInput"
+          class="form-input"
+          placeholder="Lọc ratio >= (vd: 10)"
+          inputmode="decimal"
+          step="any"
+          min="0"
+          oninput="onRatioFilterChange()"
+          style="
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 122, 0, 0.25);
+            color: #ff7a00;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.3s;
+          "
+        />
+      </div>
       <div class="tabs-container">
         <button id="tab-ruong" class="tab-btn" onclick="switchTab('ruong_lon')">
           Rương lớn
@@ -1392,6 +1157,7 @@
             showToast(data.error || "Link không khả dụng hoặc hết hạn!");
           }
         } catch (err) {
+          console.error("claim-link error:", err);
           showToast("Lỗi kết nối máy chủ!");
         } finally {
           if (btn) {
@@ -1412,25 +1178,65 @@
         );
       }
 
-      let deviceId = localStorage.getItem("device_id");
-      if (!deviceId) {
-        deviceId = "device_" + generateUUID();
-        localStorage.setItem("device_id", deviceId);
+      // ===== Device ID: ưu tiên ?device_id=... trên URL, sau đó localStorage =====
+      function safeGetStorage(k) {
+        try {
+          return localStorage.getItem(k);
+        } catch (e) {
+          return null;
+        }
+      }
+      function safeSetStorage(k, v) {
+        try {
+          localStorage.setItem(k, v);
+          return true;
+        } catch (e) {
+          return false;
+        }
       }
 
-      const unauthorizedView = document.getElementById("unauthorizedView");
+      let deviceId = null;
+      (function initDeviceId() {
+        let urlId = null;
+        try {
+          urlId = new URLSearchParams(location.search).get("device_id");
+        } catch (e) {}
+        deviceId = (urlId && urlId.trim()) || safeGetStorage("device_id");
+        if (!deviceId) {
+          deviceId = "device_" + generateUUID();
+        }
+        safeSetStorage("device_id", deviceId);
+      })();
+
       const authorizedView = document.getElementById("authorizedView");
-      const unauthDeviceId = document.getElementById("unauthDeviceId");
       const linksList = document.getElementById("linksList");
       const searchInput = document.getElementById("searchInput");
       const toast = document.getElementById("toast");
 
-      unauthDeviceId.textContent = deviceId;
+      function updateDeviceIdDisplay() {
+        document.querySelectorAll(".device-id").forEach((el) => {
+          el.textContent = deviceId;
+        });
+      }
+      updateDeviceIdDisplay();
+
       let allLinks = {};
       let groupCounts = {};
       let currentChannels = {};
       let activeTab = "ruong_treo";
+      let minRatio = null;
+      function parseRatio(str) {
+        if (str === null || str === undefined) return NaN;
+        const n = parseFloat(String(str).replace(",", "."));
+        return n;
+      }
 
+      function onRatioFilterChange() {
+        const v = document.getElementById("ratioFilterInput").value.trim();
+        minRatio = v === "" ? null : parseFloat(v.replace(",", "."));
+        if (minRatio !== null && isNaN(minRatio)) minRatio = null;
+        renderLinks(allLinks);
+      }
       const TAB_KEY_TO_ELEMENT_ID = {
         ruong_lon: "tab-ruong",
         ruong_nho: "tab-ruong-nho",
@@ -1445,14 +1251,14 @@
         "-1002889993912": "ruong_lon",
         "-1003606511380": "ruong_nho",
         "-1002914600740": "nhan_pham",
-        "-1003874158853": "ruong_treo",
+        // "-1003874158853": "ruong_treo",
         "-1003393920142": "ruong_test",
         "-1002601067327": "tui",
         "-1003337128065": "tui_0xu",
       };
 
       const defaultIdMap = {
-        ruong_treo: "-1003874158853",
+        // ruong_treo: "-1003874158853",
         nhan_pham: "-1002914600740",
         ruong_lon: "-1002889993912",
         ruong_nho: "-1003606511380",
@@ -1561,6 +1367,47 @@
         );
       }
 
+      // ===== Đổi device_id thủ công =====
+      function setCustomDeviceId() {
+        const input = document.getElementById("customDeviceIdInput");
+        const val = ((input && input.value) || "").trim();
+
+        if (!val) {
+          showToast("Chưa nhập device_id!");
+          return;
+        }
+
+        const saved = safeSetStorage("device_id", val);
+        if (!saved) {
+          showToast("Không lưu được localStorage! Thử dùng ?device_id=...");
+        }
+
+        deviceId = val;
+        _cachedFp = null;
+        updateDeviceIdDisplay();
+
+        if (input) input.value = "";
+
+        // Reset trạng thái để tải lại bằng ID mới
+        allLinks = {};
+        groupCounts = {};
+        currentChannels = {};
+        if (countdownTimerId) clearInterval(countdownTimerId);
+
+        showToast("Đã đổi device_id, đang tải lại...");
+
+        // Nếu localStorage không lưu được thì đưa ID lên URL để reload vẫn giữ
+        setTimeout(() => {
+          if (saved) {
+            location.reload();
+          } else {
+            const url = new URL(location.href);
+            url.searchParams.set("device_id", val);
+            location.href = url.toString();
+          }
+        }, 500);
+      }
+
       let currentExpiresAt = null;
       let countdownTimerId = null;
 
@@ -1609,87 +1456,20 @@
         timerEl.style.borderColor = "rgba(255, 122, 0, 0.25)";
       }
 
-      async function handleClientActivateKey(e) {
-        if (e) e.preventDefault();
-        const inputEl = document.getElementById("clientKeyInput");
-        const errEl = document.getElementById("activationError");
-        const btn = document.getElementById("clientActivateBtn");
-
-        if (!inputEl) return;
-        const key = inputEl.value.trim().toUpperCase();
-        if (!key) {
-          if (errEl) {
-            errEl.textContent = "Vui lòng nhập mã Key!";
-            errEl.style.display = "block";
-          }
-          return;
-        }
-
-        if (
-          key.startsWith("DEVICE_") ||
-          key === (deviceId || "").toUpperCase()
-        ) {
-          if (errEl) {
-            errEl.textContent =
-              "⚠️ Đây là Mã Thiết Bị của bạn, không phải Mã Key! Vui lòng nhập mã Key bạn đã mua.";
-            errEl.style.display = "block";
-          }
-          return;
-        }
-
-        if (errEl) errEl.style.display = "none";
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = "⏳ Đang kích hoạt...";
-        }
-
-        try {
-          const res = await fetch("https://vohoainam.net/api/activate-key", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ key, device_id: deviceId }),
-          });
-
-          const data = await res.json();
-          if (res.ok && data.success) {
-            showToast(data.message || "🎉 Kích hoạt thành công!");
-            inputEl.value = "";
-            await checkAuthAndLoadLinks();
-          } else {
-            if (errEl) {
-              errEl.textContent =
-                data.error || "Mã Key không chính xác hoặc đã hết lượt dùng!";
-              errEl.style.display = "block";
-            } else {
-              showToast(data.error || "Lỗi khi kích hoạt Key!");
-            }
-          }
-        } catch (err) {
-          if (errEl) {
-            errEl.textContent = "Lỗi kết nối máy chủ, vui lòng thử lại!";
-            errEl.style.display = "block";
-          }
-        } finally {
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = "⚡ Kích Hoạt";
-          }
-        }
-      }
-
       async function checkAuthAndLoadLinks(manual = false) {
         try {
           const response = await fetch(
-            `https://vohoainam.net/api/check-auth?device_id=${deviceId}`,
+            `https://vohoainam.net/api/check-auth?device_id=${encodeURIComponent(deviceId)}`,
           );
           if (response.status === 429) {
+            console.warn("check-auth: 429 (bị giới hạn tốc độ)");
             return;
           }
 
           if (response.status === 200) {
             const authData = await response.json();
+            console.log("check-auth:", response.status, authData);
             if (authData.authorized) {
-              unauthorizedView.style.display = "none";
               authorizedView.style.display = "block";
 
               const devTail =
@@ -1723,17 +1503,18 @@
               await fetchLinks();
               if (manual) showToast("Đã làm mới danh sách!");
             } else {
-              unauthorizedView.style.display = "block";
               authorizedView.style.display = "none";
               if (countdownTimerId) clearInterval(countdownTimerId);
             }
           } else if (response.status === 403) {
-            unauthorizedView.style.display = "block";
+            console.warn("check-auth: 403");
             authorizedView.style.display = "none";
             if (countdownTimerId) clearInterval(countdownTimerId);
+          } else {
+            console.warn("check-auth: status lạ", response.status);
           }
         } catch (err) {
-          console.error("Connection error:", err);
+          console.error("Connection error (check-auth):", err);
         }
       }
 
@@ -1776,18 +1557,22 @@
             },
           );
           if (response.status === 429) {
+            console.warn("stream: 429 (bị giới hạn tốc độ)");
             return;
           }
 
           if (response.status === 403) {
-            unauthorizedView.style.display = "block";
+            console.warn("stream: 403");
             authorizedView.style.display = "none";
             return;
           }
 
           if (response.ok) {
             const resJson = await response.json();
-            if (!resJson || !resJson.success) return;
+            if (!resJson || !resJson.success) {
+              console.warn("stream: success=false", resJson);
+              return;
+            }
 
             let data = resJson;
             if (resJson.encrypted && resJson.payload && resJson.iv) {
@@ -1799,6 +1584,7 @@
                   nonce,
                 );
               } catch (decErr) {
+                console.error("stream: giải mã lỗi", decErr);
                 return;
               }
             }
@@ -1836,6 +1622,8 @@
                 }
               }
             }
+          } else {
+            console.warn("stream: status", response.status);
           }
         } catch (err) {
           console.error("Error fetching links:", err);
@@ -1886,7 +1674,14 @@
           .filter((key) => {
             const item = links[key];
             const itemGroup = item.group ? String(item.group) : "";
-            return itemGroup === expectedChatId;
+            if (itemGroup !== expectedChatId) return false;
+
+            // Lọc theo ratio
+            if (minRatio !== null) {
+              const r = parseRatio(item.ratio);
+              if (isNaN(r) || r < minRatio) return false;
+            }
+            return true;
           })
           .sort((a, b) => {
             const parseDate = (str) => {
@@ -1922,20 +1717,27 @@
 
         if (keys.length === 0) {
           linksList.innerHTML =
-            '<p class="description" style="text-align: center; margin: 40px 0;">Chưa có link nào trong phân loại này.</p>';
+            '<p class="description" style="text-align: center; margin: 40px 0;">' +
+            (minRatio !== null
+              ? "Không có link nào có ratio &gt;= " + minRatio
+              : "Chưa có link nào trong phân loại này.") +
+            "</p>";
           return;
         }
 
-        const interacted = JSON.parse(
-          localStorage.getItem("interacted_links") || "[]",
-        );
+        let interacted = [];
+        try {
+          interacted = JSON.parse(
+            localStorage.getItem("interacted_links") || "[]",
+          );
+        } catch (e) {}
 
         const visibleKeys = keys.slice(0, 20);
 
         linksList.innerHTML = visibleKeys
           .map((key, idx) => {
             const item = links[key];
-            const timeParts = item.created_at.split(" ");
+            const timeParts = (item.created_at || "").split(" ");
             const hours = timeParts[0] || "";
             const date = timeParts[1] || "";
             const isInteracted = interacted.includes(key);
@@ -2022,7 +1824,6 @@
 
       function enforceMobileSecurity() {
         if (!isGenuineMobile()) {
-          unauthorizedView.style.display = "none";
           authorizedView.style.display = "none";
           const blocker = document.getElementById("desktopBlocker");
           if (blocker) blocker.style.display = "block";
@@ -2031,58 +1832,7 @@
         return true;
       }
 
-      async function initAnnouncementPopup() {
-        try {
-          const res = await fetch("https://vohoainam.net/api/announcement");
-          if (!res.ok) return;
-          const data = await res.json();
-          if (data && data.enabled && data.content && data.content.trim()) {
-            const backdrop = document.getElementById(
-              "announcementPopupBackdrop",
-            );
-            const titleEl = document.getElementById("announcementModalTitle");
-            const contentEl = document.getElementById(
-              "announcementModalContent",
-            );
-            const btnEl = document.getElementById("announcementModalBtn");
-
-            if (backdrop && contentEl) {
-              if (titleEl)
-                titleEl.textContent = data.title || "Thông Báo Hệ Thống";
-
-              const escapeDiv = document.createElement("div");
-              escapeDiv.textContent = data.content;
-              const escaped = escapeDiv.innerHTML;
-              const formattedContent = escaped.replace(
-                /(https?:\/\/[^\s]+)/g,
-                '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
-              );
-              contentEl.innerHTML = formattedContent;
-
-              if (btnEl)
-                btnEl.textContent = data.btn_text || "Đã hiểu / Tiếp tục";
-              backdrop.style.display = "flex";
-            }
-          }
-        } catch (e) {
-          console.error("Error loading announcement popup:", e);
-        }
-      }
-
-      function closeAnnouncementPopup() {
-        const backdrop = document.getElementById("announcementPopupBackdrop");
-        if (backdrop) backdrop.style.display = "none";
-      }
-
-      function handleAnnouncementBackdropClick(e) {
-        if (e.target.id === "announcementPopupBackdrop") {
-          closeAnnouncementPopup();
-        }
-      }
-
-      if (!enforceMobileSecurity()) {
-      } else {
-        initAnnouncementPopup();
+      if (enforceMobileSecurity()) {
         checkAuthAndLoadLinks();
 
         setInterval(() => {
