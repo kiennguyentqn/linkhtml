@@ -123,6 +123,11 @@
       .time-date {
         opacity: 0.5;
       }
+      .time-ratio {
+        color: #fe2c55;
+        font-weight: 700;
+        font-size: 12px;
+      }
       .link-path {
         font-size: 15px;
         font-weight: 700;
@@ -820,15 +825,8 @@
         />
       </div>
       <div class="tabs-container">
-        <button id="tab-ruong" class="tab-btn" onclick="switchTab('ruong_lon')">
-          Rương lớn
-        </button>
-        <button
-          id="tab-ruong-nho"
-          class="tab-btn"
-          onclick="switchTab('ruong_nho')"
-        >
-          Rương nhỏ
+        <button id="tab-ruong" class="tab-btn" onclick="switchTab('ruong')">
+          Rương
         </button>
         <button
           id="tab-ruong-bug"
@@ -836,13 +834,6 @@
           onclick="switchTab('ruong_treo')"
         >
           Rương treo
-        </button>
-        <button
-          id="tab-nhan-pham"
-          class="tab-btn"
-          onclick="switchTab('nhan_pham')"
-        >
-          Nhân phẩm
         </button>
         <button
           id="tab-ruong-test"
@@ -1111,20 +1102,10 @@
         return JSON.parse(dec.decode(decryptedBuf));
       }
 
-      async function openDeeplink(key, btnEl) {
+      async function openDeeplink(key) {
         if (!isGenuineMobile()) {
           showToast("Chỉ hỗ trợ mở link trên thiết bị di động!");
           return;
-        }
-
-        // Luôn tìm nút theo key, không phụ thuộc window.event
-        const btn =
-          btnEl ||
-          document.querySelector(`.link-card[data-key="${key}"] .btn-open`);
-        const originalText = btn ? btn.textContent : "";
-        if (btn) {
-          btn.textContent = "Mở...";
-          btn.disabled = true;
         }
 
         try {
@@ -1165,23 +1146,15 @@
             markLinkAsInteracted(key);
             window.location.href =
               "https://vohoainam.net/r/" + data.redirect_token;
-            return; // đang chuyển trang, không cần reset nút
           } else if (response.ok && data.url) {
             markLinkAsInteracted(key);
             window.location.href = data.url;
-            return;
           } else {
             showToast(data.error || "Link không khả dụng hoặc hết hạn!");
           }
         } catch (err) {
           console.error("claim-link error:", err);
           showToast("Lỗi kết nối máy chủ!");
-        }
-
-        // Chỉ chạy khi lỗi (không redirect)
-        if (btn) {
-          btn.textContent = originalText || "Mở Link";
-          btn.disabled = false;
         }
       }
 
@@ -1302,35 +1275,37 @@
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#39;");
       }
+
       const TAB_KEY_TO_ELEMENT_ID = {
-        ruong_lon: "tab-ruong",
-        ruong_nho: "tab-ruong-nho",
+        ruong: "tab-ruong",
         ruong_treo: "tab-ruong-bug",
-        nhan_pham: "tab-nhan-pham",
         ruong_test: "tab-ruong-test",
         tui: "tab-tui",
         tui_0xu: "tab-tui-0xu",
       };
 
-      const CHAT_ID_TO_TAB_KEY = {
-        "-1002889993912": "ruong_lon",
-        "-1003606511380": "ruong_nho",
-        "-1002914600740": "nhan_pham",
-        // "-1003874158853": "ruong_treo",
-        "-1003393920142": "ruong_test",
-        "-1002601067327": "tui",
-        "-1003337128065": "tui_0xu",
+      // Mỗi tab có thể gồm nhiều nhóm (chat_id)
+      const TAB_GROUPS = {
+        ruong: ["-1002889993912", "-1003606511380", "-1002914600740"], // lớn + nhỏ + nhân phẩm
+        ruong_test: ["-1003393920142"],
+        tui: ["-1002601067327"],
+        tui_0xu: ["-1003337128065"],
       };
 
-      const defaultIdMap = {
-        // ruong_treo: "-1003874158853",
-        nhan_pham: "-1002914600740",
-        ruong_lon: "-1002889993912",
-        ruong_nho: "-1003606511380",
-        ruong_test: "-1003393920142",
-        tui: "-1002601067327",
-        tui_0xu: "-1003337128065",
-      };
+      const CHAT_ID_TO_TAB_KEY = {};
+      Object.entries(TAB_GROUPS).forEach(([tab, ids]) =>
+        ids.forEach((id) => (CHAT_ID_TO_TAB_KEY[id] = tab)),
+      );
+
+      function getExpectedChatIds(tab) {
+        if (TAB_GROUPS[tab]) return TAB_GROUPS[tab];
+        const conf = currentChannels[tab] || {};
+        return [conf.chat_id ? String(conf.chat_id) : tab];
+      }
+
+      function getGroupCount(ids) {
+        return ids.reduce((sum, id) => sum + (groupCounts[id] || 0), 0);
+      }
 
       function switchTab(keyOrId) {
         const tabKey = CHAT_ID_TO_TAB_KEY[keyOrId] || keyOrId;
@@ -1675,15 +1650,9 @@
               } else {
                 const countEl = document.getElementById("linksCountBadge");
                 if (countEl) {
-                  const activeChannelConf = currentChannels[activeTab] || {};
-                  const activeChatId = activeChannelConf.chat_id
-                    ? String(activeChannelConf.chat_id)
-                    : defaultIdMap[activeTab] || "-1003874158853";
-                  if (groupCounts[activeChatId] !== undefined) {
-                    countEl.textContent = groupCounts[activeChatId];
-                  } else {
-                    countEl.textContent = 0;
-                  }
+                  countEl.textContent = getGroupCount(
+                    getExpectedChatIds(activeTab),
+                  );
                 }
               }
             }
@@ -1731,16 +1700,19 @@
       const cardEls = new Map();
 
       function buildCardHtml(key, item, interacted) {
-        const timeParts = (item.created_at || "").split(" ");
-        const hours = escapeHtml(timeParts[0] || "");
-        const date = escapeHtml(timeParts[1] || "");
+        // item.time dạng "01:56s - 10:17:56" -> lấy phần sau dấu "-" (giờ kết thúc)
+        const endMatch = String(item.time || "").match(
+          /-\s*(\d{1,2}:\d{2}(?::\d{2})?)/,
+        );
+        const hours = escapeHtml(endMatch ? endMatch[1] : item.time || "");
+        const date = escapeHtml(item.ratio || "");
         const hasDetails =
           item.tt_id || item.box_bag || item.ratio || item.live || item.time;
 
         return `
             <div class="link-time">
               <span class="time-hours">${hours}</span>
-              <span class="time-date">${date}</span>
+              <span class="time-ratio">${date}</span>
             </div>
             <div class="link-main-content">
              <div class="link-path" onclick="openDeeplink('${key}')" style="cursor: pointer; text-decoration: none;">
@@ -1762,7 +1734,7 @@
             </div>
             <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
               <button class="copy-link-btn" onclick="copyShortLink('${key}', this)">Copy</button>
-              <button class="btn-open" onclick="openDeeplink('${key}', this)" style="display: inline-flex; align-items: center; justify-content: center; height: 32px; border: none; outline: none; cursor: pointer;">Mở Link</button>
+              <button class="btn-open" onclick="openDeeplink('${key}')" style="display: inline-flex; align-items: center; justify-content: center; height: 32px; border: none; outline: none; cursor: pointer;">Mở Link</button>
             </div>
         `;
       }
@@ -1814,18 +1786,13 @@
       }
 
       function renderLinks(links, animate = true) {
-        const activeChannelConf = currentChannels[activeTab] || {};
-        const activeChatId = activeChannelConf.chat_id
-          ? String(activeChannelConf.chat_id)
-          : null;
-        const expectedChatId =
-          activeChatId || defaultIdMap[activeTab] || activeTab;
+        const expectedIds = getExpectedChatIds(activeTab);
 
         const keys = Object.keys(links)
           .filter((key) => {
             const item = links[key];
             const itemGroup = item.group ? String(item.group) : "";
-            if (itemGroup !== expectedChatId) return false;
+            if (!expectedIds.includes(itemGroup)) return false;
 
             // Bỏ link đã hết hạn quá 5s
             if (isLinkExpired(item)) return false;
@@ -1848,11 +1815,7 @@
 
         const countEl = document.getElementById("linksCountBadge");
         if (countEl) {
-          if (groupCounts[expectedChatId] !== undefined) {
-            countEl.textContent = groupCounts[expectedChatId];
-          } else {
-            countEl.textContent = 0;
-          }
+          countEl.textContent = getGroupCount(expectedIds);
         }
 
         // Xóa các thông báo cũ ("Đang tải...", "Chưa có link...")
@@ -1860,7 +1823,8 @@
           if (c.tagName === "P") c.remove();
         });
 
-        const visibleKeys = keys.slice(0, 20);
+        // Tab Rương gộp 3 nhóm nên cho hiển thị nhiều hơn
+        const visibleKeys = keys.slice(0, 40);
         const wanted = new Set(visibleKeys);
 
         // Xóa card không còn cần hiển thị
