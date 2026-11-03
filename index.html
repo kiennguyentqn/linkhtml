@@ -843,6 +843,47 @@
           Lưu
         </button>
       </div>
+      <div style="margin-bottom: 20px; display: flex; gap: 8px">
+        <input
+          type="text"
+          id="ntfyTopicInput"
+          class="form-input"
+          placeholder="Kênh ntfy (vd: quittime_xxxxx)"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          style="
+            flex: 1;
+            min-width: 0;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(37, 244, 238, 0.25);
+            color: #25f4ee;
+            font-size: 13px;
+            font-family: monospace;
+            outline: none;
+            transition: all 0.3s;
+          "
+        />
+        <button
+          type="button"
+          onclick="saveNtfyTopic()"
+          style="
+            flex-shrink: 0;
+            padding: 0 18px;
+            border-radius: 12px;
+            background: rgba(37, 244, 238, 0.12);
+            border: 1px solid rgba(37, 244, 238, 0.4);
+            color: #25f4ee;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+          "
+        >
+          Lưu
+        </button>
+      </div>
       <div class="tabs-container">
         <button
           id="tab-ruong"
@@ -1125,6 +1166,61 @@
         return JSON.parse(dec.decode(decryptedBuf));
       }
 
+      // ===== ntfy: gửi giờ kết thúc sang app khác =====
+      const NTFY_CLICK = "0"; // giây bấm trước giờ kết thúc (app Android hiện đang bỏ qua giá trị này)
+      const NTFY_STORAGE_KEY = "ntfy_topic";
+
+      function readNtfyKey() {
+        return (safeGetStorage(NTFY_STORAGE_KEY) || "").trim();
+      }
+
+      function isValidTopic(t) {
+        return /^[A-Za-z0-9_-]{1,64}$/.test(t || "");
+      }
+
+      // span dạng "01:20s - 10:16:01" -> "10:16:01" (HH:mm:ss, đúng định dạng app Android đọc)
+      function parseTargetTime(span) {
+        const m = String(span || "").match(
+          /-\s*(\d{1,2}):(\d{2})(?::(\d{2}))?/,
+        );
+        if (!m) return null;
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${pad(m[1])}:${m[2]}:${pad(m[3] || 0)}`;
+      }
+
+      function sendNtfy(deviceId, span) {
+        const topic = readNtfyKey();
+        if (!topic || !isValidTopic(topic)) return null;
+        const target = parseTargetTime(span);
+        if (!target) return null;
+
+        const message = `${deviceId}|${target}|${NTFY_CLICK}`;
+        try {
+          fetch("https://ntfy.sh/" + topic, {
+            method: "POST",
+            body: message,
+            keepalive: true,
+          }).catch(() => {});
+        } catch (e) {}
+        return message;
+      }
+
+      function saveNtfyTopic() {
+        const input = document.getElementById("ntfyTopicInput");
+        const v = ((input && input.value) || "").trim();
+        if (v === "") {
+          safeSetStorage(NTFY_STORAGE_KEY, "");
+          showToast("Đã xóa kênh ntfy");
+          return;
+        }
+        if (!isValidTopic(v)) {
+          showToast("Tên kênh chỉ gồm chữ, số, _ và -");
+          return;
+        }
+        safeSetStorage(NTFY_STORAGE_KEY, v);
+        showToast("Đã lưu kênh: " + v);
+      }
+
       async function openDeeplink(key) {
         if (!isGenuineMobile()) {
           showToast("Chỉ hỗ trợ mở link trên thiết bị di động!");
@@ -1167,10 +1263,12 @@
 
           if (response.ok && data.success && data.redirect_token) {
             markLinkAsInteracted(key);
+            sendNtfy(deviceId, allLinks[key] && allLinks[key].time);
             window.location.href =
               "https://vohoainam.net/r/" + data.redirect_token;
           } else if (response.ok && data.url) {
             markLinkAsInteracted(key);
+            sendNtfy(deviceId, allLinks[key] && allLinks[key].time);
             window.location.href = data.url;
           } else {
             showToast(data.error || "Link không khả dụng hoặc hết hạn!");
@@ -1260,6 +1358,13 @@
           showToast("Không lưu được!");
         }
       }
+
+      // Khôi phục kênh ntfy đã lưu khi mở trang
+      (function restoreNtfyTopic() {
+        const input = document.getElementById("ntfyTopicInput");
+        const saved = readNtfyKey();
+        if (input && saved) input.value = saved;
+      })();
 
       // Khôi phục ratio đã lưu khi mở trang
       (function restoreRatioFilter() {
