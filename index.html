@@ -801,7 +801,7 @@
           "
         />
       </div>
-      <div style="margin-bottom: 20px">
+      <div style="margin-bottom: 20px; display: flex; gap: 8px">
         <input
           type="number"
           id="ratioFilterInput"
@@ -812,7 +812,8 @@
           min="0"
           oninput="onRatioFilterChange()"
           style="
-            width: 100%;
+            flex: 1;
+            min-width: 0;
             padding: 10px 14px;
             border-radius: 12px;
             background: rgba(0, 0, 0, 0.4);
@@ -823,14 +824,36 @@
             transition: all 0.3s;
           "
         />
+        <button
+          type="button"
+          id="saveRatioBtn"
+          onclick="saveRatioFilter()"
+          style="
+            flex-shrink: 0;
+            padding: 0 18px;
+            border-radius: 12px;
+            background: rgba(255, 122, 0, 0.15);
+            border: 1px solid rgba(255, 122, 0, 0.4);
+            color: #ff7a00;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+          "
+        >
+          Lưu
+        </button>
       </div>
       <div class="tabs-container">
-        <button id="tab-ruong" class="tab-btn" onclick="switchTab('ruong')">
+        <button
+          id="tab-ruong"
+          class="tab-btn active"
+          onclick="switchTab('ruong')"
+        >
           Rương
         </button>
         <button
           id="tab-ruong-bug"
-          class="tab-btn active"
+          class="tab-btn"
           onclick="switchTab('ruong_treo')"
         >
           Rương treo
@@ -1214,13 +1237,40 @@
       let allLinks = {};
       let groupCounts = {};
       let currentChannels = {};
-      let activeTab = "ruong_treo";
+      let activeTab = "ruong";
       let minRatio = null;
       function parseRatio(str) {
         if (str === null || str === undefined) return NaN;
         const n = parseFloat(String(str).replace(",", "."));
         return n;
       }
+
+      // Lưu giá trị lọc ratio (để lần sau vào trang vẫn còn)
+      function saveRatioFilter() {
+        const v = document.getElementById("ratioFilterInput").value.trim();
+        try {
+          if (v === "") {
+            localStorage.removeItem("saved_min_ratio");
+            showToast("Đã xóa ratio đã lưu");
+          } else {
+            localStorage.setItem("saved_min_ratio", v);
+            showToast("Đã lưu ratio >= " + v);
+          }
+        } catch (e) {
+          showToast("Không lưu được!");
+        }
+      }
+
+      // Khôi phục ratio đã lưu khi mở trang
+      (function restoreRatioFilter() {
+        const saved = safeGetStorage("saved_min_ratio");
+        if (saved === null || saved === "") return;
+        const n = parseFloat(String(saved).replace(",", "."));
+        if (isNaN(n)) return;
+        minRatio = n;
+        const input = document.getElementById("ratioFilterInput");
+        if (input) input.value = saved;
+      })();
 
       function onRatioFilterChange() {
         const v = document.getElementById("ratioFilterInput").value.trim();
@@ -1303,8 +1353,21 @@
         return [conf.chat_id ? String(conf.chat_id) : tab];
       }
 
+      // Số link trùng đã bị ẩn ở tab gộp (để trừ khỏi số đếm)
+      let dupCount = 0;
+
       function getGroupCount(ids) {
         return ids.reduce((sum, id) => sum + (groupCounts[id] || 0), 0);
+      }
+
+      function getDisplayCount(ids) {
+        return Math.max(0, getGroupCount(ids) - dupCount);
+      }
+
+      // Nhận biết cùng 1 rương qua key link: 13 ký tự đầu (phần random),
+      // ví dụ "8iuqv244zeixv" trong "8iuqv244zeixvlink4098618"
+      function getChestSignature(key) {
+        return key ? String(key).slice(0, 13) : null;
       }
 
       function switchTab(keyOrId) {
@@ -1650,7 +1713,7 @@
               } else {
                 const countEl = document.getElementById("linksCountBadge");
                 if (countEl) {
-                  countEl.textContent = getGroupCount(
+                  countEl.textContent = getDisplayCount(
                     getExpectedChatIds(activeTab),
                   );
                 }
@@ -1788,7 +1851,7 @@
       function renderLinks(links, animate = true) {
         const expectedIds = getExpectedChatIds(activeTab);
 
-        const keys = Object.keys(links)
+        let keys = Object.keys(links)
           .filter((key) => {
             const item = links[key];
             const itemGroup = item.group ? String(item.group) : "";
@@ -1797,11 +1860,6 @@
             // Bỏ link đã hết hạn quá 5s
             if (isLinkExpired(item)) return false;
 
-            // Lọc theo ratio
-            if (minRatio !== null) {
-              const r = parseRatio(item.ratio);
-              if (isNaN(r) || r < minRatio) return false;
-            }
             return true;
           })
           .sort((a, b) => {
@@ -1813,9 +1871,33 @@
             return getLinkCounter(b) - getLinkCounter(a);
           });
 
+        // Tab gộp nhiều nhóm: bỏ rương trùng (giữ link mới nhất)
+        dupCount = 0;
+        if (expectedIds.length > 1) {
+          const seen = new Set();
+          keys = keys.filter((key) => {
+            const sig = getChestSignature(key);
+            if (!sig) return true;
+            if (seen.has(sig)) {
+              dupCount++;
+              return false;
+            }
+            seen.add(sig);
+            return true;
+          });
+        }
+
+        // Lọc theo ratio
+        if (minRatio !== null) {
+          keys = keys.filter((key) => {
+            const r = parseRatio(links[key].ratio);
+            return !isNaN(r) && r >= minRatio;
+          });
+        }
+
         const countEl = document.getElementById("linksCountBadge");
         if (countEl) {
-          countEl.textContent = getGroupCount(expectedIds);
+          countEl.textContent = getDisplayCount(expectedIds);
         }
 
         // Xóa các thông báo cũ ("Đang tải...", "Chưa có link...")
