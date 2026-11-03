@@ -1117,9 +1117,9 @@
           return;
         }
 
+        // Luôn tìm nút theo key, không phụ thuộc window.event
         const btn =
           btnEl ||
-          (window.event && window.event.currentTarget) ||
           document.querySelector(`.link-card[data-key="${key}"] .btn-open`);
         const originalText = btn ? btn.textContent : "";
         if (btn) {
@@ -1159,24 +1159,29 @@
             },
           );
           const data = await response.json();
-          if (response.ok && data.redirect_token) {
+          console.log(data);
+
+          if (response.ok && data.success && data.redirect_token) {
             markLinkAsInteracted(key);
             window.location.href =
               "https://vohoainam.net/r/" + data.redirect_token;
+            return; // đang chuyển trang, không cần reset nút
           } else if (response.ok && data.url) {
             markLinkAsInteracted(key);
             window.location.href = data.url;
+            return;
           } else {
             showToast(data.error || "Link không khả dụng hoặc hết hạn!");
           }
         } catch (err) {
           console.error("claim-link error:", err);
           showToast("Lỗi kết nối máy chủ!");
-        } finally {
-          if (btn) {
-            btn.textContent = originalText || "Mở Link";
-            btn.disabled = false;
-          }
+        }
+
+        // Chỉ chạy khi lỗi (không redirect)
+        if (btn) {
+          btn.textContent = originalText || "Mở Link";
+          btn.disabled = false;
         }
       }
 
@@ -1738,7 +1743,7 @@
               <span class="time-date">${date}</span>
             </div>
             <div class="link-main-content">
-              <div class="link-path" onclick="openDeeplink('${key}')" style="cursor: pointer; text-decoration: none;">
+             <div class="link-path" onclick="openDeeplink('${key}')" style="cursor: pointer; text-decoration: none;">
                 /<span class="path-random">${escapeHtml(key.slice(0, 13))}</span><span class="path-index">${escapeHtml(key.slice(13))}</span>
               </div>
               ${
