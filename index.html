@@ -1560,6 +1560,33 @@
         return key ? String(key).slice(0, 13) : null;
       }
 
+      // So khớp ID có ký tự ẩn "*" (random vị trí): cùng độ dài,
+      // mỗi vị trí giống nhau hoặc một bên là "*"
+      // ví dụ "nguyenducki*n" khớp "nguye*duckien"
+      function isSamePerson(idA, idB) {
+        if (!idA || !idB) return false;
+        const a = String(idA).trim().toLowerCase();
+        const b = String(idB).trim().toLowerCase();
+        if (a.length !== b.length || a.length === 0) return false;
+        for (let i = 0; i < a.length; i++) {
+          if (a[i] !== b[i] && a[i] !== "*" && b[i] !== "*") return false;
+        }
+        return true;
+      }
+
+      // Mốc thời gian kết thúc dùng để so sánh (có cả ngày)
+      function getEndKey(item) {
+        const t = getExpireTs(item);
+        if (t !== null) return String(t);
+        return parseTargetTime(item && item.time);
+      }
+
+      function isSameEndTime(itemA, itemB) {
+        const a = getEndKey(itemA);
+        const b = getEndKey(itemB);
+        return a !== null && b !== null && a === b;
+      }
+
       function switchTab(keyOrId) {
         const tabKey = CHAT_ID_TO_TAB_KEY[keyOrId] || keyOrId;
         activeTab = tabKey;
@@ -2074,18 +2101,35 @@
             return getLinkCounter(b) - getLinkCounter(a);
           });
 
-        // Tab gộp nhiều nhóm: bỏ rương trùng (giữ link mới nhất)
+        // Tab gộp nhiều nhóm: bỏ link trùng (giữ link mới nhất, vì keys đã sort mới -> cũ)
         dupCount = 0;
         if (expectedIds.length > 1) {
           const seen = new Set();
+          const kept = [];
           keys = keys.filter((key) => {
+            const item = links[key];
             const sig = getChestSignature(key);
-            if (!sig) return true;
-            if (seen.has(sig)) {
+
+            // Trùng theo key như cũ
+            if (sig && seen.has(sig)) {
               dupCount++;
               return false;
             }
-            seen.add(sig);
+
+            // Trùng theo ID (có thể khác vị trí dấu *) + cùng giờ kết thúc
+            // Khác giờ kết thúc thì vẫn hiển thị cả hai
+            const isDup = kept.some(
+              (k) =>
+                isSamePerson(links[k].tt_id, item.tt_id) &&
+                isSameEndTime(links[k], item),
+            );
+            if (isDup) {
+              dupCount++;
+              return false;
+            }
+
+            if (sig) seen.add(sig);
+            kept.push(key);
             return true;
           });
         }
