@@ -128,6 +128,12 @@
         font-weight: 700;
         font-size: 12px;
       }
+      .time-box {
+        color: #ff7a00;
+        font-weight: 700;
+        font-size: 11px;
+        white-space: nowrap;
+      }
       .link-path {
         font-size: 15px;
         font-weight: 700;
@@ -260,6 +266,67 @@
       }
       .copy-link-btn:active {
         transform: scale(0.96);
+      }
+      .settings-bubble {
+        position: fixed;
+        left: calc(50% - 24px);
+        top: 12px;
+        z-index: 1000;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 122, 0, 0.5);
+        background:
+          linear-gradient(
+            135deg,
+            rgba(255, 122, 0, 0.35),
+            rgba(37, 244, 238, 0.25)
+          ),
+          #121216;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+        transition:
+          transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 0.3s ease;
+      }
+      .settings-bubble:hover {
+        transform: scale(1.08);
+        box-shadow: 0 6px 24px rgba(255, 122, 0, 0.4);
+      }
+      .settings-bubble.open {
+        transform: rotate(90deg);
+      }
+      .settings-panel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        top: 70px;
+        z-index: 999;
+        width: min(360px, calc(100vw - 32px));
+        max-height: calc(100vh - 90px);
+        overflow-y: auto;
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(18, 18, 22, 0.96);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .settings-panel > div[style*="margin-bottom"] {
+        margin-bottom: 12px !important;
+      }
+      .settings-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 12px;
       }
       .filter-note {
         text-align: center;
@@ -577,39 +644,12 @@
           padding: 0px 4px !important;
         }
       }
+      body {
+        padding-top: 72px !important;
+      }
     </style>
   </head>
   <body>
-    <!-- Ô nhập device_id thủ công -->
-    <div style="margin-top: 10px; display: flex; gap: 8px; width: 100%">
-      <input
-        type="text"
-        id="customDeviceIdInput"
-        class="form-input"
-        placeholder="Nhập device_id muốn dùng..."
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck="false"
-        style="
-          flex: 1;
-          height: 38px;
-          font-size: 12px;
-          font-family: monospace;
-          background: rgba(0, 0, 0, 0.3);
-          border-color: rgba(255, 255, 255, 0.1);
-          color: #fff;
-        "
-      />
-      <button
-        type="button"
-        class="copy-btn"
-        onclick="setCustomDeviceId()"
-        style="white-space: nowrap"
-      >
-        Dùng ID này
-      </button>
-    </div>
-
     <div
       id="desktopBlocker"
       class="container"
@@ -751,6 +791,113 @@
           </button>
         </div>
       </div>
+      <div class="tabs-container">
+        <button
+          id="tab-ruong"
+          class="tab-btn active"
+          onclick="switchTab('ruong')"
+        >
+          Rương
+        </button>
+        <button
+          id="tab-ruong-nho"
+          class="tab-btn"
+          onclick="switchTab('ruong_nho')"
+        >
+          Rương nhỏ
+        </button>
+        <button
+          id="tab-ruong-bug"
+          class="tab-btn"
+          onclick="switchTab('ruong_treo')"
+        >
+          Rương treo
+        </button>
+        <button
+          id="tab-ruong-test"
+          class="tab-btn"
+          onclick="switchTab('ruong_test')"
+        >
+          Rương Test
+        </button>
+        <button id="tab-tui" class="tab-btn" onclick="switchTab('tui')">
+          Túi
+        </button>
+        <button id="tab-tui-0xu" class="tab-btn" onclick="switchTab('tui_0xu')">
+          Túi 0xu
+        </button>
+      </div>
+
+      <div
+        id="filterNote"
+        class="filter-note"
+        style="display: none; margin-bottom: 12px"
+      ></div>
+
+      <div id="linksList" class="links-container">
+        <p class="description" style="text-align: center">
+          Đang tải danh sách link...
+        </p>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      id="settingsBubble"
+      class="settings-bubble"
+      onclick="toggleSettings(event)"
+      title="Cài đặt"
+      aria-label="Cài đặt"
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="3" />
+        <path
+          d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+        />
+      </svg>
+    </button>
+    <div id="settingsPanel" class="settings-panel" style="display: none">
+      <div class="settings-title">Cài đặt</div>
+      <!-- Ô nhập device_id thủ công -->
+      <div style="margin-top: 10px; display: flex; gap: 8px; width: 100%">
+        <input
+          type="text"
+          id="customDeviceIdInput"
+          class="form-input"
+          placeholder="Nhập device_id muốn dùng..."
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          style="
+            flex: 1;
+            height: 38px;
+            font-size: 12px;
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+          "
+        />
+        <button
+          type="button"
+          class="copy-btn"
+          onclick="setCustomDeviceId()"
+          style="white-space: nowrap"
+        >
+          Dùng ID này
+        </button>
+      </div>
+
+      <div style="height: 14px"></div>
       <div style="margin-bottom: 20px; display: flex; gap: 8px">
         <input
           type="number"
@@ -833,54 +980,6 @@
         >
           Lưu
         </button>
-      </div>
-      <div class="tabs-container">
-        <button
-          id="tab-ruong"
-          class="tab-btn active"
-          onclick="switchTab('ruong')"
-        >
-          Rương
-        </button>
-        <button
-          id="tab-ruong-nho"
-          class="tab-btn"
-          onclick="switchTab('ruong_nho')"
-        >
-          Rương nhỏ
-        </button>
-        <button
-          id="tab-ruong-bug"
-          class="tab-btn"
-          onclick="switchTab('ruong_treo')"
-        >
-          Rương treo
-        </button>
-        <button
-          id="tab-ruong-test"
-          class="tab-btn"
-          onclick="switchTab('ruong_test')"
-        >
-          Rương Test
-        </button>
-        <button id="tab-tui" class="tab-btn" onclick="switchTab('tui')">
-          Túi
-        </button>
-        <button id="tab-tui-0xu" class="tab-btn" onclick="switchTab('tui_0xu')">
-          Túi 0xu
-        </button>
-      </div>
-
-      <div
-        id="filterNote"
-        class="filter-note"
-        style="display: none; margin-bottom: 12px"
-      ></div>
-
-      <div id="linksList" class="links-container">
-        <p class="description" style="text-align: center">
-          Đang tải danh sách link...
-        </p>
       </div>
     </div>
 
@@ -1125,6 +1224,24 @@
         return JSON.parse(dec.decode(decryptedBuf));
       }
 
+      // ===== Bong bóng cài đặt =====
+      function toggleSettings(ev) {
+        if (ev) ev.stopPropagation();
+        const panel = document.getElementById("settingsPanel");
+        const bubble = document.getElementById("settingsBubble");
+        const open = panel.style.display === "none";
+        panel.style.display = open ? "block" : "none";
+        bubble.classList.toggle("open", open);
+      }
+      document.addEventListener("click", (e) => {
+        const panel = document.getElementById("settingsPanel");
+        const bubble = document.getElementById("settingsBubble");
+        if (!panel || panel.style.display === "none") return;
+        if (panel.contains(e.target) || bubble.contains(e.target)) return;
+        panel.style.display = "none";
+        bubble.classList.remove("open");
+      });
+
       // ===== Đồng hồ: bù lệch giờ giữa điện thoại và server =====
       let serverOffset = 0; // ms: (giờ server) - (giờ máy)
       function nowMs() {
@@ -1350,7 +1467,7 @@
       }
 
       // ===== Thời gian tạo / hết hạn (cố định theo giờ VN, UTC+7) =====
-      const EXPIRE_GRACE_MS = 1000; // hết hạn quá 15s mới xóa
+      const EXPIRE_GRACE_MS = 15000; // hết hạn quá 15s mới xóa
       const VN_OFFSET_MS = 7 * 3600000; // đổi nếu server trả múi giờ khác
       const MAX_VISIBLE = 150; // số card tối đa hiển thị
 
@@ -1856,13 +1973,13 @@
         );
         const hours = escapeHtml(endMatch ? endMatch[1] : item.time || "");
         const date = escapeHtml(item.ratio || "");
-        const hasDetails =
-          item.tt_id || item.box_bag || item.ratio || item.live || item.time;
+        const hasDetails = item.tt_id || item.ratio || item.live || item.time;
 
         return `
             <div class="link-time">
               <span class="time-hours">${hours}</span>
               <span class="time-ratio">${date}</span>
+              ${item.box_bag ? `<span class="time-box">Box: ${escapeHtml(item.box_bag)}</span>` : ""}
             </div>
             <div class="link-main-content">
              <div class="link-path" onclick="openDeeplink('${key}')" style="cursor: pointer; text-decoration: none;">
@@ -1873,7 +1990,6 @@
                   ? `
                 <div class="link-details-row">
                   ${item.tt_id ? `<span class="detail-badge badge-id">ID: ${escapeHtml(item.tt_id)}</span>` : ""}
-                  ${item.box_bag ? `<span class="detail-badge badge-box">Box: ${escapeHtml(item.box_bag)}</span>` : ""}
                   ${item.ratio ? `<span class="detail-badge badge-ratio">Ratio: ${escapeHtml(item.ratio)}</span>` : ""}
                   ${item.live ? `<span class="detail-badge badge-live-viewers">Live: ${escapeHtml(item.live)}</span>` : ""}
                   ${item.time ? `<span class="detail-badge badge-time">Time: ${escapeHtml(item.time)}</span>` : ""}
